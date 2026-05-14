@@ -1,0 +1,138 @@
+# Bulk URL Content Find & Replace
+
+> A premium WordPress administration tool for safely performing **bulk find and replace** on post, page, and custom-post-type content across a curated list of URLs or paths — with a dry-run preview, a polished results dashboard, and CSV export.
+
+[![WordPress](https://img.shields.io/badge/WordPress-5.6%2B-blue.svg)](https://wordpress.org/)
+[![PHP](https://img.shields.io/badge/PHP-7.2%2B-purple.svg)](https://www.php.net/)
+[![License: GPL v2+](https://img.shields.io/badge/License-GPL%20v2%2B-green.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
+[![Version](https://img.shields.io/badge/version-1.0.0-orange.svg)](#changelog)
+
+---
+
+## Overview
+
+Most "search & replace" tools scan the entire WordPress database blindly, which is risky on production sites. **Bulk URL Content Find & Replace** takes the opposite approach: you provide an explicit list of URLs or paths, the exact text to find, and the exact text to replace it with. Only the content of those specific posts is touched — nothing else.
+
+It is built for site owners, agencies, and developers who need surgical, predictable content edits across many pages at once.
+
+## Features
+
+- **Targeted by URL** — Operate only on the posts/pages you list. No accidental side-effects.
+- **Exact, case-sensitive matching** — No regex foot-guns. What you type is what gets replaced.
+- **Mixed URL and path support** — Accepts full URLs (`https://example.com/sample-page/`) and relative paths (`/sample-page/`).
+- **Any post type** — Detects target posts via `url_to_postid()`, so it works with posts, pages, and any registered CPT (including those from other plugins or themes).
+- **Dry Run mode** — Preview the exact number of replacements per URL *before* writing anything to the database.
+- **Premium results dashboard** — Summary tiles, status colors, dashicons, and a detailed per-URL table.
+- **CSV export & Copy to clipboard** — Share or archive results in one click.
+- **Safety first** — Skips revisions, auto-drafts, and trashed posts. Duplicate URLs are deduplicated.
+- **Hardened security** — Capability checks, nonces, input sanitisation, output escaping, and direct-access protection throughout.
+- **Translation-ready** — Loaded with text domain `bulk-url-content-find-replace`.
+
+## Requirements
+
+| Requirement | Minimum |
+| ----------- | ------- |
+| WordPress   | 5.6     |
+| PHP         | 7.2     |
+| Tested up to (WP) | 6.5 |
+| User capability   | `manage_options` |
+
+## Installation
+
+### From a ZIP
+
+1. Download the latest release ZIP from this repository (or the Releases page).
+2. In your WordPress admin, go to **Plugins → Add New → Upload Plugin**.
+3. Choose the ZIP file and click **Install Now**, then **Activate**.
+
+### Manual installation
+
+1. Clone or download this repository into your `/wp-content/plugins/` directory:
+   ```bash
+   cd wp-content/plugins
+   git clone https://github.com/<your-username>/bulk-url-content-find-replace.git
+   ```
+2. Activate **Bulk URL Content Find & Replace** from the **Plugins** screen in WordPress.
+
+## Usage
+
+1. Navigate to **Tools → Bulk URL Content Find & Replace** in the WordPress admin.
+2. Fill in the configuration card:
+   - **Search text** — the exact string to find (case-sensitive).
+   - **Replace text** — the exact string to put in its place.
+   - **URLs** — one URL or path per line. Mix and match full URLs and relative paths.
+   - **Dry Run** — leave enabled to preview without writing changes.
+3. Click **Run**.
+4. Review the results dashboard:
+   - Summary tiles show totals (processed, updated, replacements, skipped, errors).
+   - The detailed table breaks down each URL with status, post ID, and replacement count.
+5. Use **Export CSV** or **Copy Results** to save the run for your records.
+6. When the dry run looks correct, disable **Dry Run** and execute the live replacement.
+
+> [!WARNING]
+> There is no built-in undo. **Always take a full database backup before running a live replacement.** Use Dry Run to verify the impact first.
+
+## How It Works
+
+1. URLs are normalised, deduplicated, and converted to post IDs via WordPress's `url_to_postid()`.
+2. Each resolved post's `post_content` is loaded and scanned for an exact, case-sensitive match of the search string.
+3. Matches are counted and replaced with the replacement string (in Dry Run mode the post is not saved).
+4. Revisions, auto-drafts, and trashed posts are skipped automatically.
+5. The most recent results are stored in a short-lived per-user transient (15 minutes) so the CSV export endpoint can stream them.
+
+## Project Structure
+
+```
+bulk-url-content-find-replace/
+├── bulk-url-content-find-replace.php   # Plugin bootstrap, constants, activation hook
+├── readme.txt                          # WordPress.org-format readme
+├── README.md                           # This file
+├── assets/
+│   ├── css/                            # Admin UI styles
+│   └── js/                             # Admin UI scripts
+└── includes/
+    ├── class-plugin.php                # Plugin container / singleton
+    ├── class-admin-page.php            # Admin screen, form, results dashboard
+    ├── class-replacer.php              # Core find/replace service
+    └── class-helper.php                # URL normalisation & shared utilities
+```
+
+The codebase uses an object-oriented, namespaced architecture (`BUCFR\…`) with a clean separation between bootstrap, plugin container, admin UI, replacer service, and helper utilities.
+
+## FAQ
+
+**Is matching case-sensitive?**
+Yes. Matching is exact — `Hello` and `hello` are treated as different strings.
+
+**Can I use regular expressions?**
+No. By design, the plugin uses exact string replacement to avoid the typical foot-guns of regex-based replacements on production data.
+
+**Does it support custom post types?**
+Yes. Any post type whose permalink resolves through `url_to_postid()` is supported, including CPTs registered by other plugins or themes.
+
+**Will my revisions be modified?**
+No. Revisions, auto-drafts, and trashed posts are skipped.
+
+**How do I undo a replacement?**
+There is no automatic undo. Always take a full database backup before running a live replacement, or use **Dry Run** first.
+
+**Where are results stored?**
+The most recent results are stored in a short-lived per-user transient (15 minutes) solely so the CSV export endpoint can stream them.
+
+## Changelog
+
+### 1.0.0
+- Initial release.
+
+## License
+
+This plugin is licensed under the [GPL v2 or later](https://www.gnu.org/licenses/gpl-2.0.html).
+
+## Author
+
+**Ankur Patel**
+Website: [ankurpatel.in](https://ankurpatel.in/)
+
+## Contributing
+
+Bug reports, feature requests, and pull requests are welcome. Please open an issue to discuss substantial changes before submitting a PR.

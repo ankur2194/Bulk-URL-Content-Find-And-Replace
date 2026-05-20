@@ -4,7 +4,7 @@ Tags: find and replace, bulk edit, urls, content, search replace, posts, pages, 
 Requires at least: 5.6
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: bulk-url-content-find-replace
@@ -29,6 +29,7 @@ Unlike search-and-replace tools that scan the whole database blindly, this plugi
 * Persistent **activity log** of every live replacement (page, post type, replacement count, user, timestamp, View/Edit links). Keeps the 200 most recent updates and can be cleared anytime. Dry runs are never logged.
 * Hardened security: capability checks, nonces, sanitisation, escaping, direct-access protection.
 * Skips revisions, auto-drafts, and trashed posts. Duplicate URLs are processed only once.
+* Clean uninstall: deleting the plugin removes all of its data (activity-log option and per-user transients) from the database, multisite-aware. Your content changes are kept.
 * Translation-ready.
 
 = Built for premium use =
@@ -77,6 +78,10 @@ The most recent results are stored in a short-lived per-user transient (15 minut
 
 A persistent, on-screen audit trail of every page changed by a live replacement. Each entry records the page title, post ID, post type, resolved URL, replacement count, the user who ran it, and the timestamp, with View and Edit links. It keeps the 200 most recent updates (older entries are pruned automatically) and survives across sessions. Dry-run previews are never logged, since nothing is written to the database. It is stored in a single capped option and can be emptied with **Clear log** — clearing the log deletes only the log, not the underlying content changes.
 
+= What happens to my data when I uninstall the plugin? =
+
+The plugin cleans up after itself. Deleting it from the **Plugins** screen removes everything it stored in the database: the activity-log option and every per-user results/state transient (on multisite, this runs for each site in the network). The actual content changes made to your posts are intentionally left in place, since those are real edits to your site rather than plugin data.
+
 == Screenshots ==
 
 1. Configuration card with Search, Replace, URLs, and Dry Run toggle.
@@ -85,10 +90,16 @@ A persistent, on-screen audit trail of every page changed by a live replacement.
 
 == Changelog ==
 
+= 1.0.1 =
+* Added: clean uninstall. Deleting the plugin now removes the activity-log option and all per-user results/state transients from the database (multisite-aware), leaving no plugin data behind. Content changes are preserved.
+
 = 1.0.0 =
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.0.1 =
+Adds clean uninstall — all plugin data is removed from the database when the plugin is deleted.
 
 = 1.0.0 =
 First public release.

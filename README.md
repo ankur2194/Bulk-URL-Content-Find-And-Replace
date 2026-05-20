@@ -5,7 +5,7 @@
 [![WordPress](https://img.shields.io/badge/WordPress-5.6%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.2%2B-purple.svg)](https://www.php.net/)
 [![License: GPL v2+](https://img.shields.io/badge/License-GPL%20v2%2B-green.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
-[![Version](https://img.shields.io/badge/version-1.0.0-orange.svg)](#changelog)
+[![Version](https://img.shields.io/badge/version-1.0.1-orange.svg)](#changelog)
 
 ---
 
@@ -27,6 +27,7 @@ It is built for site owners, agencies, and developers who need surgical, predict
 - **CSV export & Copy to clipboard** — Share or archive results in one click.
 - **Persistent activity log** — Every live replacement is recorded on-screen: which page changed, when, by whom, how many replacements, with View/Edit links. Keeps the 200 most recent updates and can be cleared at any time. Dry-run previews are never logged.
 - **Safety first** — Skips revisions, auto-drafts, and trashed posts. Duplicate URLs are deduplicated.
+- **Clean uninstall** — Deleting the plugin removes all of its data from the database (activity-log option and per-user transients), multisite-aware. Your content changes are kept.
 - **Hardened security** — Capability checks, nonces, input sanitisation, output escaping, and direct-access protection throughout.
 - **Translation-ready** — Loaded with text domain `bulk-url-content-find-replace`.
 
@@ -89,6 +90,7 @@ It is built for site owners, agencies, and developers who need surgical, predict
 ```
 bulk-url-content-find-replace/
 ├── bulk-url-content-find-replace.php   # Plugin bootstrap, constants, activation hook
+├── uninstall.php                       # Removes all plugin data on deletion (multisite-aware)
 ├── readme.txt                          # WordPress.org-format readme
 ├── README.md                           # This file
 ├── assets/
@@ -132,7 +134,13 @@ A persistent, on-screen audit trail of every page changed by a **live** replacem
 **Does the Activity Log slow my site down or grow forever?**
 No. It is stored in a single non-autoloaded option that is hard-capped at 200 entries, and it is only read and rendered on the plugin's own admin screen. Use **Clear log** to empty it at any time — clearing the log only deletes the log itself, not the underlying content changes.
 
+**What happens to my data when I uninstall the plugin?**
+The plugin cleans up after itself. Deleting it from the **Plugins** screen removes everything it stored in the database — the activity-log option and every per-user results/state transient (on multisite, the cleanup runs for each site in the network). The actual content changes made to your posts are intentionally left in place, since those are real edits to your site, not plugin data.
+
 ## Changelog
+
+### 1.0.1
+- Added clean uninstall: deleting the plugin now removes the activity-log option and all per-user results/state transients from the database (multisite-aware), leaving no plugin data behind. Content changes are preserved.
 
 ### 1.0.0
 - Initial release.

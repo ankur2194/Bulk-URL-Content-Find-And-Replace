@@ -237,6 +237,17 @@ class Replacer {
 			}
 		}
 
+		// If a replacement was found in the Elementor data but the result could
+		// not be safely re-encoded, refuse to touch this post rather than risk
+		// writing a corrupt (empty) value to _elementor_data.
+		if ( $elementor_count > 0 && ! is_string( $new_elementor ) ) {
+			$row['status']   = 'failed';
+			$row['message']  = __( 'Elementor data could not be safely re-encoded; this post was left unchanged.', 'bulk-url-content-find-replace' );
+			$summary['failed']++;
+			$seen_post_ids[] = (int) $post->ID;
+			return $row;
+		}
+
 		$count = $content_count + $elementor_count;
 
 		if ( 0 === $count ) {

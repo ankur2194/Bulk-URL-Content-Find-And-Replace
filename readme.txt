@@ -1,6 +1,6 @@
 === Bulk URL Content Find & Replace ===
 Contributors: ankur2194
-Tags: find and replace, bulk edit, urls, content, search replace, posts, pages
+Tags: find and replace, bulk edit, urls, content, search replace, posts, pages, elementor
 Requires at least: 5.6
 Tested up to: 6.5
 Requires PHP: 7.2
@@ -9,11 +9,11 @@ License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: bulk-url-content-find-replace
 
-Premium tool for administrators to bulk find and replace exact text inside post, page, or CPT content by listing URLs or paths — with dry-run preview, full results dashboard, and CSV export.
+Premium tool for administrators to bulk find and replace exact text inside post, page, CPT, and Elementor content by listing URLs or paths — with dry-run preview, full results dashboard, and CSV export.
 
 == Description ==
 
-**Bulk URL Content Find & Replace** is a premium administration tool that lets WordPress site owners and developers safely find and replace exact text inside post, page, and custom-post-type content across a curated list of URLs or paths.
+**Bulk URL Content Find & Replace** is a premium administration tool that lets WordPress site owners and developers safely find and replace exact text inside post, page, custom-post-type, and Elementor content across a curated list of URLs or paths.
 
 Unlike search-and-replace tools that scan the whole database blindly, this plugin operates surgically: you provide the list of URLs you want to touch, the exact text to find, and the exact text to replace it with. Nothing else is modified.
 
@@ -22,6 +22,7 @@ Unlike search-and-replace tools that scan the whole database blindly, this plugi
 * Exact, case-sensitive matching. No regex surprises.
 * Accept full URLs (e.g. `https://example.com/sample-page/`) and relative paths (e.g. `/sample-page/`).
 * Detect target post automatically via `url_to_postid()`, supporting any registered post type.
+* Elementor-aware: also replaces text inside Elementor page content (`_elementor_data`) and refreshes Elementor's CSS cache afterward.
 * **Dry Run** mode shows what *would* change before any database write.
 * Premium results dashboard with summary tiles, detailed table, status colors, dashicons.
 * One-click **CSV export** and **Copy results** to clipboard.
@@ -54,6 +55,10 @@ No. By design, the plugin uses exact string replacement to avoid the typical foo
 = Does it support custom post types? =
 
 Yes. Any post type whose permalink resolves through `url_to_postid()` is supported, including CPTs registered by other plugins or themes.
+
+= Does it work with Elementor? =
+
+Yes. Elementor stores its page content as JSON in the `_elementor_data` post meta rather than in `post_content`, so the plugin searches and replaces inside that data as well — decoding it, replacing the text safely, re-encoding it, and saving. After a live run it regenerates Elementor's cached CSS so the change appears on the front end. Other page builders that keep content in their own storage are not covered.
 
 = Will my revisions be modified? =
 

@@ -1,6 +1,6 @@
 # Bulk URL Content Find & Replace
 
-> A premium WordPress administration tool for safely performing **bulk find and replace** on post, page, and custom-post-type content across a curated list of URLs or paths — with a dry-run preview, a polished results dashboard, and CSV export.
+> A premium WordPress administration tool for safely performing **bulk find and replace** on post, page, and custom-post-type content — including pages built with Elementor — across a curated list of URLs or paths, with a dry-run preview, a polished results dashboard, and CSV export.
 
 [![WordPress](https://img.shields.io/badge/WordPress-5.6%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.2%2B-purple.svg)](https://www.php.net/)
@@ -21,6 +21,7 @@ It is built for site owners, agencies, and developers who need surgical, predict
 - **Exact, case-sensitive matching** — No regex foot-guns. What you type is what gets replaced.
 - **Mixed URL and path support** — Accepts full URLs (`https://example.com/sample-page/`) and relative paths (`/sample-page/`).
 - **Any post type** — Detects target posts via `url_to_postid()`, so it works with posts, pages, and any registered CPT (including those from other plugins or themes).
+- **Elementor-aware** — Also finds and replaces text inside Elementor page content stored in `_elementor_data`, then refreshes Elementor's CSS cache so the changes appear on the front end right away.
 - **Dry Run mode** — Preview the exact number of replacements per URL *before* writing anything to the database.
 - **Premium results dashboard** — Summary tiles, status colors, dashicons, and a detailed per-URL table.
 - **CSV export & Copy to clipboard** — Share or archive results in one click.
@@ -75,8 +76,8 @@ It is built for site owners, agencies, and developers who need surgical, predict
 ## How It Works
 
 1. URLs are normalised, deduplicated, and converted to post IDs via WordPress's `url_to_postid()`.
-2. Each resolved post's `post_content` is loaded and scanned for an exact, case-sensitive match of the search string.
-3. Matches are counted and replaced with the replacement string (in Dry Run mode the post is not saved).
+2. Each resolved post's `post_content` — and, for Elementor-built pages, its `_elementor_data` — is loaded and scanned for an exact, case-sensitive match of the search string.
+3. Matches are counted and replaced with the replacement string (in Dry Run mode nothing is saved). Elementor content is decoded from JSON, replaced safely string-by-string, re-encoded, and saved; Elementor's cached CSS is then regenerated so the change shows on the front end.
 4. Revisions, auto-drafts, and trashed posts are skipped automatically.
 5. The most recent results are stored in a short-lived per-user transient (15 minutes) so the CSV export endpoint can stream them.
 
@@ -109,6 +110,9 @@ No. By design, the plugin uses exact string replacement to avoid the typical foo
 
 **Does it support custom post types?**
 Yes. Any post type whose permalink resolves through `url_to_postid()` is supported, including CPTs registered by other plugins or themes.
+
+**Does it work with Elementor?**
+Yes. Elementor stores its page content as JSON in the `_elementor_data` post meta rather than in `post_content`, so the plugin searches and replaces inside that data as well — decoding it, replacing the text safely, re-encoding it, and saving. After a live run it regenerates Elementor's cached CSS so the change appears on the front end. Other page builders that keep content in their own storage are not covered.
 
 **Will my revisions be modified?**
 No. Revisions, auto-drafts, and trashed posts are skipped.

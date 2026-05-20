@@ -438,7 +438,7 @@ class Admin_Page {
 					<div>
 						<h1><?php esc_html_e( 'Bulk URL Content Find &amp; Replace', 'bulk-url-content-find-replace' ); ?></h1>
 						<p class="bucfr-header__subtitle">
-							<?php esc_html_e( 'Replace exact text inside any post, page, or custom post type by listing the URLs or paths to process.', 'bulk-url-content-find-replace' ); ?>
+							<?php esc_html_e( 'Replace exact text inside any post, page, or custom post type — including pages built with Elementor — by listing the URLs or paths to process.', 'bulk-url-content-find-replace' ); ?>
 						</p>
 					</div>
 				</div>
@@ -684,6 +684,7 @@ class Admin_Page {
 					<li><?php esc_html_e( 'Capability-gated to administrators only.', 'bulk-url-content-find-replace' ); ?></li>
 					<li><?php esc_html_e( 'Nonce-verified form submission.', 'bulk-url-content-find-replace' ); ?></li>
 					<li><?php esc_html_e( 'Skips revisions, auto-drafts, and trashed posts.', 'bulk-url-content-find-replace' ); ?></li>
+					<li><?php esc_html_e( 'Elementor page content is updated too, and its CSS cache is refreshed automatically.', 'bulk-url-content-find-replace' ); ?></li>
 					<li><?php esc_html_e( 'Duplicate URLs are processed only once.', 'bulk-url-content-find-replace' ); ?></li>
 					<li><?php esc_html_e( 'Exact, case-sensitive matching — no regex surprises.', 'bulk-url-content-find-replace' ); ?></li>
 				</ul>

@@ -38,6 +38,14 @@ class Replacer {
 	private $dry_run;
 
 	/**
+	 * Whether at least one Elementor page's data was rewritten during this run.
+	 * Used to trigger a single Elementor cache regeneration at the end.
+	 *
+	 * @var bool
+	 */
+	private $elementor_dirty = false;
+
+	/**
 	 * Build a new replacer.
 	 *
 	 * @param string $search  Exact search text.
@@ -85,6 +93,13 @@ class Replacer {
 
 		foreach ( $lines as $line ) {
 			$rows[] = $this->process_single_line( $line, $seen_post_ids, $summary );
+		}
+
+		// If any Elementor page data was rewritten, regenerate Elementor's cached
+		// CSS once so the front end reflects the new content. Guarded so it is a
+		// harmless no-op when Elementor is not active.
+		if ( $this->elementor_dirty && class_exists( '\\Elementor\\Plugin' ) ) {
+			\Elementor\Plugin::$instance->files_manager->clear_cache();
 		}
 
 		$summary['duration'] = microtime( true ) - $summary['started_at'];
@@ -200,11 +215,29 @@ class Replacer {
 
 		$content = (string) $post->post_content;
 
-		$count = 0;
-		// substr_count uses strict, exact matching — perfect for "exact text match only".
-		if ( '' !== $this->search ) {
-			$count = substr_count( $content, $this->search );
+		// Count matches in classic post_content. substr_count uses strict, exact
+		// matching — perfect for "exact text match only".
+		$content_count = ( '' !== $this->search ) ? substr_count( $content, $this->search ) : 0;
+
+		// Elementor stores the real page content as JSON in the _elementor_data
+		// post meta, not in post_content. Decode it, replace inside every string
+		// leaf, and re-encode so the change survives the round-trip exactly.
+		$elementor_count = 0;
+		$new_elementor   = null;
+		$elementor_raw   = get_post_meta( $post->ID, '_elementor_data', true );
+		if ( '' !== $this->search && is_string( $elementor_raw ) && '' !== $elementor_raw ) {
+			$decoded = json_decode( $elementor_raw, true );
+			if ( is_array( $decoded ) ) {
+				$replaced = $this->replace_in_structure( $decoded, $elementor_count );
+				if ( $elementor_count > 0 ) {
+					// wp_json_encode re-escapes forward slashes, matching the exact
+					// format Elementor writes to the database.
+					$new_elementor = wp_json_encode( $replaced );
+				}
+			}
 		}
+
+		$count = $content_count + $elementor_count;
 
 		if ( 0 === $count ) {
 			$row['status']  = 'no_match';
@@ -234,31 +267,52 @@ class Replacer {
 			return $row;
 		}
 
-		// Perform the actual update.
-		$new_content = str_replace( $this->search, $this->replace, $content );
+		// Perform the actual update(s). A single post can have both classic
+		// post_content and Elementor data; update whichever actually changed.
+		$something_changed = false;
 
-		// Skip the database write if nothing actually changed (defence in depth).
-		if ( $new_content === $content ) {
+		// 1) Classic post_content.
+		if ( $content_count > 0 ) {
+			$new_content = str_replace( $this->search, $this->replace, $content );
+
+			if ( $new_content !== $content ) {
+				$update = wp_update_post(
+					array(
+						'ID'           => $post->ID,
+						'post_content' => $new_content,
+					),
+					true
+				);
+
+				if ( is_wp_error( $update ) ) {
+					$row['status']  = 'failed';
+					$row['message'] = $update->get_error_message();
+					$summary['failed']++;
+					$seen_post_ids[] = (int) $post->ID;
+					return $row;
+				}
+
+				$something_changed = true;
+			}
+		}
+
+		// 2) Elementor page-builder data (_elementor_data).
+		if ( $elementor_count > 0 && null !== $new_elementor ) {
+			// wp_slash counteracts the wp_unslash that update_metadata() applies,
+			// so the JSON is stored exactly as Elementor expects it.
+			update_post_meta( $post->ID, '_elementor_data', wp_slash( $new_elementor ) );
+			// Drop the stale per-post inline CSS cache; a full regeneration runs
+			// once at the end of the batch (see process()).
+			delete_post_meta( $post->ID, '_elementor_css' );
+			$this->elementor_dirty = true;
+			$something_changed      = true;
+		}
+
+		// Defence in depth: if for some reason nothing actually changed, report it.
+		if ( ! $something_changed ) {
 			$row['status']  = 'no_match';
 			$row['message'] = __( 'Content did not change after replacement.', 'bulk-url-content-find-replace' );
 			$summary['no_match']++;
-			$seen_post_ids[] = (int) $post->ID;
-			return $row;
-		}
-
-		// Suspend revisions during this single update for performance and DB hygiene.
-		$update = wp_update_post(
-			array(
-				'ID'           => $post->ID,
-				'post_content' => $new_content,
-			),
-			true
-		);
-
-		if ( is_wp_error( $update ) ) {
-			$row['status']  = 'failed';
-			$row['message'] = $update->get_error_message();
-			$summary['failed']++;
 			$seen_post_ids[] = (int) $post->ID;
 			return $row;
 		}
@@ -278,5 +332,33 @@ class Replacer {
 		$seen_post_ids[] = (int) $post->ID;
 
 		return $row;
+	}
+
+	/**
+	 * Recursively walk a decoded Elementor data structure and run the exact
+	 * find & replace against every string leaf, accumulating the match count.
+	 *
+	 * Non-string scalars (ints, floats, bools, null) are returned untouched so
+	 * Elementor's setting types are preserved exactly.
+	 *
+	 * @param mixed $node  Current node (array or scalar) from the decoded JSON.
+	 * @param int   $count Reference to the running replacement count.
+	 * @return mixed The node with replacements applied to its string leaves.
+	 */
+	private function replace_in_structure( $node, &$count ) {
+		if ( is_array( $node ) ) {
+			foreach ( $node as $key => $value ) {
+				$node[ $key ] = $this->replace_in_structure( $value, $count );
+			}
+			return $node;
+		}
+
+		if ( is_string( $node ) ) {
+			$local = 0;
+			$node  = str_replace( $this->search, $this->replace, $node, $local );
+			$count += $local;
+		}
+
+		return $node;
 	}
 }

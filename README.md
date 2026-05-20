@@ -1,6 +1,6 @@
 # Bulk URL Content Find & Replace
 
-> A premium WordPress administration tool for safely performing **bulk find and replace** on post, page, and custom-post-type content — including pages built with Elementor — across a curated list of URLs or paths, with a dry-run preview, a polished results dashboard, and CSV export.
+> A premium WordPress administration tool for safely performing **bulk find and replace** on post, page, and custom-post-type content — including pages built with Elementor — across a curated list of URLs or paths, with a dry-run preview, a polished results dashboard, CSV export, and a persistent activity log.
 
 [![WordPress](https://img.shields.io/badge/WordPress-5.6%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.2%2B-purple.svg)](https://www.php.net/)
@@ -25,6 +25,7 @@ It is built for site owners, agencies, and developers who need surgical, predict
 - **Dry Run mode** — Preview the exact number of replacements per URL *before* writing anything to the database.
 - **Premium results dashboard** — Summary tiles, status colors, dashicons, and a detailed per-URL table.
 - **CSV export & Copy to clipboard** — Share or archive results in one click.
+- **Persistent activity log** — Every live replacement is recorded on-screen: which page changed, when, by whom, how many replacements, with View/Edit links. Keeps the 200 most recent updates and can be cleared at any time. Dry-run previews are never logged.
 - **Safety first** — Skips revisions, auto-drafts, and trashed posts. Duplicate URLs are deduplicated.
 - **Hardened security** — Capability checks, nonces, input sanitisation, output escaping, and direct-access protection throughout.
 - **Translation-ready** — Loaded with text domain `bulk-url-content-find-replace`.
@@ -69,6 +70,7 @@ It is built for site owners, agencies, and developers who need surgical, predict
    - The detailed table breaks down each URL with status, post ID, and replacement count.
 5. Use **Export CSV** or **Copy Results** to save the run for your records.
 6. When the dry run looks correct, disable **Dry Run** and execute the live replacement.
+7. Check the **Activity Log** at the bottom of the screen for a running history of pages changed by live runs, each with View/Edit links. Use **Clear log** to empty it (this only removes the log, never the content changes).
 
 > [!WARNING]
 > There is no built-in undo. **Always take a full database backup before running a live replacement.** Use Dry Run to verify the impact first.
@@ -80,6 +82,7 @@ It is built for site owners, agencies, and developers who need surgical, predict
 3. Matches are counted and replaced with the replacement string (in Dry Run mode nothing is saved). Elementor content is decoded from JSON, replaced safely string-by-string, re-encoded, and saved; Elementor's cached CSS is then regenerated so the change shows on the front end.
 4. Revisions, auto-drafts, and trashed posts are skipped automatically.
 5. The most recent results are stored in a short-lived per-user transient (15 minutes) so the CSV export endpoint can stream them.
+6. Every page actually changed by a **live** run is appended to a persistent activity log (newest first, capped at the 200 most recent entries) so you keep an on-screen audit trail of what was modified, when, and by whom. Dry-run previews are not logged.
 
 ## Project Structure
 
@@ -93,7 +96,7 @@ bulk-url-content-find-replace/
 │   └── js/                             # Admin UI scripts
 └── includes/
     ├── class-plugin.php                # Plugin container / singleton
-    ├── class-admin-page.php            # Admin screen, form, results dashboard
+    ├── class-admin-page.php            # Admin screen, form, results dashboard, activity log
     ├── class-replacer.php              # Core find/replace service
     └── class-helper.php                # URL normalisation & shared utilities
 ```
@@ -122,6 +125,12 @@ There is no automatic undo. Always take a full database backup before running a 
 
 **Where are results stored?**
 The most recent results are stored in a short-lived per-user transient (15 minutes) solely so the CSV export endpoint can stream them.
+
+**What is the Activity Log?**
+A persistent, on-screen audit trail of every page changed by a **live** replacement. Each entry records the page title, post ID, post type, resolved URL, replacement count, the user who ran it, and the timestamp, along with View and Edit links. It keeps the 200 most recent updates (older entries are pruned automatically) and survives across sessions. Dry-run previews are never logged, since nothing is written to the database.
+
+**Does the Activity Log slow my site down or grow forever?**
+No. It is stored in a single non-autoloaded option that is hard-capped at 200 entries, and it is only read and rendered on the plugin's own admin screen. Use **Clear log** to empty it at any time — clearing the log only deletes the log itself, not the underlying content changes.
 
 ## Changelog
 

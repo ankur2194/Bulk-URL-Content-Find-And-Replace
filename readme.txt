@@ -9,7 +9,7 @@ License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: bulk-url-content-find-replace
 
-Premium tool for administrators to bulk find and replace exact text inside post, page, CPT, and Elementor content by listing URLs or paths — with dry-run preview, full results dashboard, and CSV export.
+Premium tool for administrators to bulk find and replace exact text inside post, page, CPT, and Elementor content by listing URLs or paths — with dry-run preview, full results dashboard, CSV export, and a persistent activity log.
 
 == Description ==
 
@@ -26,6 +26,7 @@ Unlike search-and-replace tools that scan the whole database blindly, this plugi
 * **Dry Run** mode shows what *would* change before any database write.
 * Premium results dashboard with summary tiles, detailed table, status colors, dashicons.
 * One-click **CSV export** and **Copy results** to clipboard.
+* Persistent **activity log** of every live replacement (page, post type, replacement count, user, timestamp, View/Edit links). Keeps the 200 most recent updates and can be cleared anytime. Dry runs are never logged.
 * Hardened security: capability checks, nonces, sanitisation, escaping, direct-access protection.
 * Skips revisions, auto-drafts, and trashed posts. Duplicate URLs are processed only once.
 * Translation-ready.
@@ -71,6 +72,10 @@ There is no automatic undo. Always take a full database backup before running a 
 = Where are results stored? =
 
 The most recent results are stored in a short-lived per-user transient (15 minutes) solely so the CSV export endpoint can stream them.
+
+= What is the Activity Log? =
+
+A persistent, on-screen audit trail of every page changed by a live replacement. Each entry records the page title, post ID, post type, resolved URL, replacement count, the user who ran it, and the timestamp, with View and Edit links. It keeps the 200 most recent updates (older entries are pruned automatically) and survives across sessions. Dry-run previews are never logged, since nothing is written to the database. It is stored in a single capped option and can be emptied with **Clear log** — clearing the log deletes only the log, not the underlying content changes.
 
 == Screenshots ==
 

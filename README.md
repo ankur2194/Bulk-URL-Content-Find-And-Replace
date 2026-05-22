@@ -5,7 +5,7 @@
 [![WordPress](https://img.shields.io/badge/WordPress-5.6%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.2%2B-purple.svg)](https://www.php.net/)
 [![License: GPL v2+](https://img.shields.io/badge/License-GPL%20v2%2B-green.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
-[![Version](https://img.shields.io/badge/version-1.0.1-orange.svg)](#changelog)
+[![Version](https://img.shields.io/badge/version-1.0.3-orange.svg)](#changelog)
 
 ---
 
@@ -23,7 +23,7 @@ It is built for site owners, agencies, and developers who need surgical, predict
 - **Any post type** — Detects target posts via `url_to_postid()`, so it works with posts, pages, and any registered CPT (including those from other plugins or themes).
 - **Elementor-aware** — Also finds and replaces text inside Elementor page content stored in `_elementor_data`, then refreshes Elementor's CSS cache so the changes appear on the front end right away.
 - **Dry Run mode** — Preview the exact number of replacements per URL *before* writing anything to the database.
-- **Premium results dashboard** — Summary tiles, status colors, dashicons, and a detailed per-URL table.
+- **Premium results dashboard** — Summary tiles, status colors, dashicons, and a detailed per-URL table, with replacement counts broken down by source (classic content vs. Elementor).
 - **CSV export & Copy to clipboard** — Share or archive results in one click.
 - **Persistent activity log** — Every live replacement is recorded on-screen: which page changed, when, by whom, how many replacements, with View/Edit links. Keeps the 200 most recent updates and can be cleared at any time. Dry-run previews are never logged.
 - **Safety first** — Skips revisions, auto-drafts, and trashed posts. Duplicate URLs are deduplicated.
@@ -138,6 +138,12 @@ No. It is stored in a single non-autoloaded option that is hard-capped at 200 en
 The plugin cleans up after itself. Deleting it from the **Plugins** screen removes everything it stored in the database — the activity-log option and every per-user results/state transient (on multisite, the cleanup runs for each site in the network). The actual content changes made to your posts are intentionally left in place, since those are real edits to your site, not plugin data.
 
 ## Changelog
+
+### 1.0.3
+- Added a per-source replacement breakdown: results and the activity log now show how many replacements came from classic post content vs. Elementor content (visible in the summary tiles, results table, "pages updated" panel, activity log, and CSV export).
+
+### 1.0.2
+- Fixed dashicon alignment in the Copy Results, Export CSV, View, and Edit buttons so the icons sit centered against their labels.
 
 ### 1.0.1
 - Added clean uninstall: deleting the plugin now removes the activity-log option and all per-user results/state transients from the database (multisite-aware), leaving no plugin data behind. Content changes are preserved.

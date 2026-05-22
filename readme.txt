@@ -4,7 +4,7 @@ Tags: find and replace, bulk edit, urls, content, search replace, posts, pages, 
 Requires at least: 5.6
 Tested up to: 6.5
 Requires PHP: 7.2
-Stable tag: 1.0.1
+Stable tag: 1.0.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: bulk-url-content-find-replace
@@ -24,7 +24,7 @@ Unlike search-and-replace tools that scan the whole database blindly, this plugi
 * Detect target post automatically via `url_to_postid()`, supporting any registered post type.
 * Elementor-aware: also replaces text inside Elementor page content (`_elementor_data`) and refreshes Elementor's CSS cache afterward.
 * **Dry Run** mode shows what *would* change before any database write.
-* Premium results dashboard with summary tiles, detailed table, status colors, dashicons.
+* Premium results dashboard with summary tiles, detailed table, status colors, dashicons, and replacement counts split by source (classic content vs. Elementor).
 * One-click **CSV export** and **Copy results** to clipboard.
 * Persistent **activity log** of every live replacement (page, post type, replacement count, user, timestamp, View/Edit links). Keeps the 200 most recent updates and can be cleared anytime. Dry runs are never logged.
 * Hardened security: capability checks, nonces, sanitisation, escaping, direct-access protection.
@@ -90,6 +90,12 @@ The plugin cleans up after itself. Deleting it from the **Plugins** screen remov
 
 == Changelog ==
 
+= 1.0.3 =
+* Added: replacement counts are now broken down by source — classic post content vs. Elementor content — across the results summary tiles, the results table, the "pages updated" panel, the activity log, and the CSV export.
+
+= 1.0.2 =
+* Fixed: dashicons in the Copy Results, Export CSV, View, and Edit buttons are now vertically centered with their button labels.
+
 = 1.0.1 =
 * Added: clean uninstall. Deleting the plugin now removes the activity-log option and all per-user results/state transients from the database (multisite-aware), leaving no plugin data behind. Content changes are preserved.
 
@@ -97,6 +103,12 @@ The plugin cleans up after itself. Deleting it from the **Plugins** screen remov
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.0.3 =
+Results and the activity log now show how many replacements came from classic content vs. Elementor content.
+
+= 1.0.2 =
+Fixes button icon alignment on the admin tool screen.
 
 = 1.0.1 =
 Adds clean uninstall — all plugin data is removed from the database when the plugin is deleted.

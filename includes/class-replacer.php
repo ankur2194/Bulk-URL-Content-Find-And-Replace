@@ -76,7 +76,9 @@ class Replacer {
 			'failed'             => 0,
 			'duplicate'          => 0,
 			'skipped'            => 0,
-			'total_replacements' => 0,
+			'total_replacements'     => 0,
+			'content_replacements'   => 0,
+			'elementor_replacements' => 0,
 			'started_at'         => microtime( true ),
 			'duration'           => 0.0,
 			'timestamp'          => current_time( 'mysql' ),
@@ -127,6 +129,8 @@ class Replacer {
 			'post_title'    => '',
 			'status'        => 'failed',
 			'replacements'  => 0,
+			'content_replacements'   => 0,
+			'elementor_replacements' => 0,
 			'message'       => '',
 			'edit_link'     => '',
 			'view_link'     => '',
@@ -259,7 +263,11 @@ class Replacer {
 		}
 
 		$row['replacements']           = $count;
-		$summary['total_replacements'] += $count;
+		$row['content_replacements']   = $content_count;
+		$row['elementor_replacements'] = $elementor_count;
+		$summary['total_replacements']     += $count;
+		$summary['content_replacements']   += $content_count;
+		$summary['elementor_replacements'] += $elementor_count;
 
 		if ( $this->dry_run ) {
 			$row['status']  = 'preview';

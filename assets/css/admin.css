@@ -541,11 +541,16 @@
 	margin-top: 14px;
 }
 
+.bucfr-results__toolbar .button {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+}
+
 .bucfr-results__toolbar .button .dashicons {
 	font-size: 16px;
 	width: 16px;
 	height: 16px;
-	margin-right: 4px;
 }
 
 .bucfr-results__status {
@@ -688,6 +693,50 @@
 	color: var(--bucfr-text-muted);
 }
 
+/* --- Replacement source breakdown (Content vs Elementor) --- */
+
+.bucfr-rep-breakdown {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 4px;
+}
+
+.bucfr-rep-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 3px;
+	padding: 1px 8px;
+	border-radius: 999px;
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 1.7;
+	white-space: nowrap;
+}
+
+.bucfr-rep-chip .dashicons {
+	font-size: 12px;
+	width: 12px;
+	height: 12px;
+}
+
+.bucfr-rep-chip--content {
+	background: var(--bucfr-info-bg);
+	color: var(--bucfr-info);
+}
+
+.bucfr-rep-chip--elementor {
+	background: #fbeaf2;
+	color: #a32a6d;
+}
+
+/* In the numeric "Replacements" cells the chips sit on their own line,
+   right-aligned beneath the total. */
+.bucfr-num .bucfr-rep-breakdown {
+	justify-content: flex-end;
+	margin-top: 5px;
+	white-space: normal;
+}
+
 /* --- Updated pages panel (per run) --- */
 
 .bucfr-updated-panel {
@@ -810,12 +859,16 @@
 	flex-shrink: 0;
 }
 
+.bucfr-updated-item__actions .button {
+	display: inline-flex;
+	align-items: center;
+	gap: 3px;
+}
+
 .bucfr-updated-item__actions .button .dashicons {
 	font-size: 14px;
 	width: 14px;
 	height: 14px;
-	margin-right: 3px;
-	vertical-align: middle;
 }
 
 /* --- Activity log --- */
@@ -882,6 +935,9 @@
 }
 
 .bucfr-log__actions .button {
+	display: inline-flex;
+	align-items: center;
+	gap: 3px;
 	margin-right: 4px;
 }
 
@@ -889,7 +945,6 @@
 	font-size: 14px;
 	width: 14px;
 	height: 14px;
-	margin-right: 3px;
 }
 
 .bucfr-log__footnote {

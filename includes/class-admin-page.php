@@ -278,6 +278,8 @@ class Admin_Page {
 				'edit_link'    => isset( $row['edit_link'] ) ? (string) $row['edit_link'] : '',
 				'view_link'    => isset( $row['view_link'] ) ? (string) $row['view_link'] : '',
 				'replacements' => isset( $row['replacements'] ) ? (int) $row['replacements'] : 0,
+				'content_replacements'   => isset( $row['content_replacements'] ) ? (int) $row['content_replacements'] : 0,
+				'elementor_replacements' => isset( $row['elementor_replacements'] ) ? (int) $row['elementor_replacements'] : 0,
 			);
 		}
 
@@ -392,6 +394,8 @@ class Admin_Page {
 				__( 'Post Title', 'bulk-url-content-find-replace' ),
 				__( 'Status', 'bulk-url-content-find-replace' ),
 				__( 'Replacements', 'bulk-url-content-find-replace' ),
+				__( 'Content Replacements', 'bulk-url-content-find-replace' ),
+				__( 'Elementor Replacements', 'bulk-url-content-find-replace' ),
 				__( 'Message', 'bulk-url-content-find-replace' ),
 			)
 		);
@@ -407,6 +411,8 @@ class Admin_Page {
 					isset( $row['post_title'] )   ? $row['post_title']   : '',
 					isset( $row['status'] )       ? Helper::status_label( $row['status'] ) : '',
 					isset( $row['replacements'] ) ? $row['replacements'] : 0,
+					isset( $row['content_replacements'] )   ? $row['content_replacements']   : 0,
+					isset( $row['elementor_replacements'] ) ? $row['elementor_replacements'] : 0,
 					isset( $row['message'] )      ? $row['message']      : '',
 				)
 			);
@@ -834,6 +840,18 @@ class Admin_Page {
 				'label' => __( 'Total replacements', 'bulk-url-content-find-replace' ),
 				'value' => isset( $summary['total_replacements'] ) ? (int) $summary['total_replacements'] : 0,
 			),
+			array(
+				'tone'  => 'info',
+				'icon'  => 'media-text',
+				'label' => __( 'Content replacements', 'bulk-url-content-find-replace' ),
+				'value' => isset( $summary['content_replacements'] ) ? (int) $summary['content_replacements'] : 0,
+			),
+			array(
+				'tone'  => 'info',
+				'icon'  => 'layout',
+				'label' => __( 'Elementor replacements', 'bulk-url-content-find-replace' ),
+				'value' => isset( $summary['elementor_replacements'] ) ? (int) $summary['elementor_replacements'] : 0,
+			),
 		);
 
 		echo '<div class="bucfr-tiles">';
@@ -849,6 +867,60 @@ class Admin_Page {
 			<?php
 		}
 		echo '</div>';
+	}
+
+	/**
+	 * Build the per-source replacement breakdown markup (classic content vs.
+	 * Elementor). Used by the results table, the updated-pages panel, and the
+	 * activity log so the user can always see where the replacements happened.
+	 *
+	 * Outputs nothing when neither source recorded a replacement — e.g. legacy
+	 * activity-log entries written before this split existed — so callers
+	 * gracefully fall back to showing just the total.
+	 *
+	 * @param int $content_count   Replacements made in classic post_content.
+	 * @param int $elementor_count Replacements made in Elementor (_elementor_data).
+	 * @return void
+	 */
+	private function render_replacement_breakdown( $content_count, $elementor_count ) {
+		$content_count   = (int) $content_count;
+		$elementor_count = (int) $elementor_count;
+
+		if ( $content_count <= 0 && $elementor_count <= 0 ) {
+			return;
+		}
+		?>
+		<span class="bucfr-rep-breakdown">
+			<?php if ( $content_count > 0 ) : ?>
+				<span class="bucfr-rep-chip bucfr-rep-chip--content">
+					<span class="dashicons dashicons-media-text" aria-hidden="true"></span>
+					<?php
+					echo esc_html(
+						sprintf(
+							/* translators: %s: number of replacements made in classic post content. */
+							__( 'Content: %s', 'bulk-url-content-find-replace' ),
+							number_format_i18n( $content_count )
+						)
+					);
+					?>
+				</span>
+			<?php endif; ?>
+			<?php if ( $elementor_count > 0 ) : ?>
+				<span class="bucfr-rep-chip bucfr-rep-chip--elementor">
+					<span class="dashicons dashicons-layout" aria-hidden="true"></span>
+					<?php
+					echo esc_html(
+						sprintf(
+							/* translators: %s: number of replacements made in Elementor content. */
+							__( 'Elementor: %s', 'bulk-url-content-find-replace' ),
+							number_format_i18n( $elementor_count )
+						)
+					);
+					?>
+				</span>
+			<?php endif; ?>
+		</span>
+		<?php
 	}
 
 	/**
@@ -902,6 +974,8 @@ class Admin_Page {
 					$post_id   = isset( $row['post_id'] ) ? (int) $row['post_id'] : 0;
 					$post_type = isset( $row['post_type'] ) ? $row['post_type'] : '';
 					$reps      = isset( $row['replacements'] ) ? (int) $row['replacements'] : 0;
+					$content_reps   = isset( $row['content_replacements'] ) ? (int) $row['content_replacements'] : 0;
+					$elementor_reps = isset( $row['elementor_replacements'] ) ? (int) $row['elementor_replacements'] : 0;
 					$edit_url  = ! empty( $row['edit_link'] ) ? $row['edit_link'] : '';
 					$view_url  = ! empty( $row['view_link'] ) ? $row['view_link'] : '';
 					?>
@@ -929,6 +1003,7 @@ class Admin_Page {
 									);
 									?>
 								</span>
+								<?php $this->render_replacement_breakdown( $content_reps, $elementor_reps ); ?>
 								<?php if ( ! empty( $row['resolved_url'] ) ) : ?>
 									<code class="bucfr-updated-item__url"><?php echo esc_html( $row['resolved_url'] ); ?></code>
 								<?php endif; ?>
@@ -1026,6 +1101,8 @@ class Admin_Page {
 								$post_id   = isset( $entry['post_id'] ) ? (int) $entry['post_id'] : 0;
 								$post_type = isset( $entry['post_type'] ) ? $entry['post_type'] : '';
 								$reps      = isset( $entry['replacements'] ) ? (int) $entry['replacements'] : 0;
+								$content_reps   = isset( $entry['content_replacements'] ) ? (int) $entry['content_replacements'] : 0;
+								$elementor_reps = isset( $entry['elementor_replacements'] ) ? (int) $entry['elementor_replacements'] : 0;
 								$edit_url  = ! empty( $entry['edit_link'] ) ? $entry['edit_link'] : '';
 								$view_url  = ! empty( $entry['view_link'] ) ? $entry['view_link'] : '';
 								$user_name = ! empty( $entry['user_name'] ) ? $entry['user_name'] : __( '—', 'bulk-url-content-find-replace' );
@@ -1054,6 +1131,7 @@ class Admin_Page {
 									</td>
 									<td class="bucfr-num">
 										<?php echo esc_html( number_format_i18n( $reps ) ); ?>
+										<?php $this->render_replacement_breakdown( $content_reps, $elementor_reps ); ?>
 									</td>
 									<td><?php echo esc_html( $user_name ); ?></td>
 									<td class="bucfr-log__actions">
@@ -1183,6 +1261,12 @@ class Admin_Page {
 							</td>
 							<td class="bucfr-num">
 								<?php echo esc_html( number_format_i18n( isset( $row['replacements'] ) ? (int) $row['replacements'] : 0 ) ); ?>
+								<?php
+								$this->render_replacement_breakdown(
+									isset( $row['content_replacements'] ) ? (int) $row['content_replacements'] : 0,
+									isset( $row['elementor_replacements'] ) ? (int) $row['elementor_replacements'] : 0
+								);
+								?>
 							</td>
 							<td class="bucfr-cell-message">
 								<?php echo esc_html( isset( $row['message'] ) ? $row['message'] : '' ); ?>

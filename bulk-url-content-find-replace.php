@@ -3,7 +3,7 @@
  * Plugin Name:       Bulk URL Content Find & Replace
  * Plugin URI:        https://ankurpatel.in/
  * Description:       Bulk find and replace exact text inside post, page, and custom post type content by providing a list of URLs or paths. Includes a safe dry-run preview, detailed results dashboard, and CSV export.
- * Version:           1.0.1
+ * Version:           1.0.3
  * Requires at least: 5.6
  * Requires PHP:      7.2
  * Author:            Ankur Patel
@@ -23,7 +23,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // Define plugin constants.
 if ( ! defined( 'BUCFR_VERSION' ) ) {
-	define( 'BUCFR_VERSION', '1.0.1' );
+	define( 'BUCFR_VERSION', '1.0.3' );
 }
 
 if ( ! defined( 'BUCFR_PLUGIN_FILE' ) ) {

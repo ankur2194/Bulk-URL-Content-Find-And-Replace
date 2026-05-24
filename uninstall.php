@@ -69,9 +69,9 @@ function bucfr_uninstall_cleanup() {
 
 // On multisite, clean every site in the network; otherwise just this site.
 if ( is_multisite() ) {
-	$site_ids = get_sites( array( 'fields' => 'ids' ) );
-	foreach ( $site_ids as $site_id ) {
-		switch_to_blog( $site_id );
+	$bucfr_site_ids = get_sites( array( 'fields' => 'ids' ) );
+	foreach ( $bucfr_site_ids as $bucfr_site_id ) {
+		switch_to_blog( $bucfr_site_id );
 		bucfr_uninstall_cleanup();
 		restore_current_blog();
 	}

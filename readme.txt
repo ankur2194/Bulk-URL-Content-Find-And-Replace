@@ -1,15 +1,15 @@
 === Bulk URL Content Find & Replace ===
 Contributors: ankur2194
-Tags: find and replace, bulk edit, urls, content, search replace, posts, pages, elementor
+Tags: find and replace, search replace, bulk edit, urls, elementor
 Requires at least: 5.6
-Tested up to: 6.5
+Tested up to: 7.0
 Requires PHP: 7.2
 Stable tag: 1.0.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: bulk-url-content-find-replace
 
-Premium tool for administrators to bulk find and replace exact text inside post, page, CPT, and Elementor content by listing URLs or paths — with dry-run preview, full results dashboard, CSV export, and a persistent activity log.
+Bulk find and replace exact text in post, page, and Elementor content by URL, with dry-run preview, results dashboard, and CSV export.
 
 == Description ==
 

@@ -65,24 +65,13 @@ final class Plugin {
 	 * @return void
 	 */
 	public function init() {
-		add_action( 'init', array( $this, 'load_textdomain' ) );
-
+		// Translations are loaded automatically: WordPress.org serves them for the plugin
+		// slug, and WP's just-in-time loader picks up any bundled .mo files in /languages
+		// (the Domain Path) since the text domain matches the slug. A manual
+		// load_plugin_textdomain() call has been discouraged since WordPress 4.6.
 		if ( is_admin() ) {
 			$this->admin_page = new Admin_Page();
 			$this->admin_page->register();
 		}
-	}
-
-	/**
-	 * Load translations.
-	 *
-	 * @return void
-	 */
-	public function load_textdomain() {
-		load_plugin_textdomain(
-			'bulk-url-content-find-replace',
-			false,
-			dirname( BUCFR_PLUGIN_BASENAME ) . '/languages'
-		);
 	}
 }

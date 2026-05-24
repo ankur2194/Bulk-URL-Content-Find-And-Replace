@@ -1,0 +1,513 @@
+# Copyright (C) 2026 Ankur Patel
+# This file is distributed under the same license as the Bulk URL Content Find & Replace plugin.
+msgid ""
+msgstr ""
+"Project-Id-Version: Bulk URL Content Find & Replace 1.0.3\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/bulk-url-content-find-replace\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-05-24 18:34:45+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"X-Generator: bucfr-pot-extractor 1.0\n"
+"X-Domain: bulk-url-content-find-replace\n"
+
+#: bulk-url-content-find-replace.php:63
+msgid "Bulk URL Content Find & Replace requires PHP 7.2 or higher. Please upgrade PHP before activating this plugin."
+msgstr ""
+
+#: bulk-url-content-find-replace.php:64 bulk-url-content-find-replace.php:74
+msgid "Plugin activation failed"
+msgstr ""
+
+#: bulk-url-content-find-replace.php:73
+msgid "Bulk URL Content Find & Replace requires WordPress 5.6 or higher."
+msgstr ""
+
+#: includes/class-admin-page.php:1000 includes/class-admin-page.php:1125 includes/class-admin-page.php:1239
+msgid "ID: %d"
+msgstr ""
+
+#: includes/class-admin-page.php:1007
+msgid "%s replacement"
+msgid_plural "%s replacements"
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/class-admin-page.php:1023 includes/class-admin-page.php:1148 includes/class-admin-page.php:1247
+msgid "View"
+msgstr ""
+
+#: includes/class-admin-page.php:1029 includes/class-admin-page.php:1154 includes/class-admin-page.php:1242
+msgid "Edit"
+msgstr ""
+
+#: includes/class-admin-page.php:1066
+msgid "Activity Log — Recently Updated Pages"
+msgstr ""
+
+#: includes/class-admin-page.php:107
+msgid "You are about to update post content in the database. This action cannot be undone automatically.\n\nMake sure you have a recent backup. Continue?"
+msgstr ""
+
+#: includes/class-admin-page.php:1077
+msgid "Clear the activity log? This only deletes the log itself, not the post changes."
+msgstr ""
+
+#: includes/class-admin-page.php:108
+msgid "Processing…"
+msgstr ""
+
+#: includes/class-admin-page.php:1080
+msgid "Clear log"
+msgstr ""
+
+#: includes/class-admin-page.php:1088
+msgid "No pages have been updated yet. Run a live replacement to start the log."
+msgstr ""
+
+#: includes/class-admin-page.php:109
+msgid "Run Find & Replace"
+msgstr ""
+
+#: includes/class-admin-page.php:1095
+msgid "When"
+msgstr ""
+
+#: includes/class-admin-page.php:1096
+msgid "Page"
+msgstr ""
+
+#: includes/class-admin-page.php:1097 includes/class-admin-page.php:1204
+msgid "Type"
+msgstr ""
+
+#: includes/class-admin-page.php:1099
+msgid "By"
+msgstr ""
+
+#: includes/class-admin-page.php:110 includes/class-admin-page.php:650
+msgid "Run Dry-Run Preview"
+msgstr ""
+
+#: includes/class-admin-page.php:1100
+msgid "Actions"
+msgstr ""
+
+#: includes/class-admin-page.php:111
+msgid "Results copied to clipboard."
+msgstr ""
+
+#: includes/class-admin-page.php:1115 includes/class-admin-page.php:1221
+msgid "—"
+msgstr ""
+
+#: includes/class-admin-page.php:112
+msgid "Could not copy to clipboard."
+msgstr ""
+
+#: includes/class-admin-page.php:113
+msgid "characters"
+msgstr ""
+
+#: includes/class-admin-page.php:114
+msgid "lines"
+msgstr ""
+
+#: includes/class-admin-page.php:1169
+msgid "The log keeps the %d most recent updates. Older entries are pruned automatically."
+msgstr ""
+
+#: includes/class-admin-page.php:1191
+msgid "No rows to display."
+msgstr ""
+
+#: includes/class-admin-page.php:1201
+msgid "#"
+msgstr ""
+
+#: includes/class-admin-page.php:1202
+msgid "URL / Path"
+msgstr ""
+
+#: includes/class-admin-page.php:1203
+msgid "Post"
+msgstr ""
+
+#: includes/class-admin-page.php:131 includes/class-admin-page.php:303 includes/class-admin-page.php:355 includes/class-admin-page.php:439
+msgid "You do not have permission to access this page."
+msgstr ""
+
+#: includes/class-admin-page.php:132 includes/class-admin-page.php:304 includes/class-admin-page.php:356
+msgid "Permission denied"
+msgstr ""
+
+#: includes/class-admin-page.php:336
+msgid "Please enter the text you want to search for."
+msgstr ""
+
+#: includes/class-admin-page.php:341
+msgid "Please enter at least one URL or path (one per line)."
+msgstr ""
+
+#: includes/class-admin-page.php:397
+msgid "Input"
+msgstr ""
+
+#: includes/class-admin-page.php:398
+msgid "Resolved URL"
+msgstr ""
+
+#: includes/class-admin-page.php:399
+msgid "Post ID"
+msgstr ""
+
+#: includes/class-admin-page.php:400
+msgid "Post Type"
+msgstr ""
+
+#: includes/class-admin-page.php:401
+msgid "Post Title"
+msgstr ""
+
+#: includes/class-admin-page.php:402 includes/class-admin-page.php:1205
+msgid "Status"
+msgstr ""
+
+#: includes/class-admin-page.php:403 includes/class-admin-page.php:1098 includes/class-admin-page.php:1206
+msgid "Replacements"
+msgstr ""
+
+#: includes/class-admin-page.php:404
+msgid "Content Replacements"
+msgstr ""
+
+#: includes/class-admin-page.php:405
+msgid "Elementor Replacements"
+msgstr ""
+
+#: includes/class-admin-page.php:406 includes/class-admin-page.php:1207
+msgid "Message"
+msgstr ""
+
+#: includes/class-admin-page.php:452
+msgid "Bulk URL Content Find &amp; Replace"
+msgstr ""
+
+#: includes/class-admin-page.php:454
+msgid "Replace exact text inside any post, page, or custom post type — including pages built with Elementor — by listing the URLs or paths to process."
+msgstr ""
+
+#: includes/class-admin-page.php:461
+msgid "Admin only"
+msgstr ""
+
+#: includes/class-admin-page.php:465
+msgid "Exact match"
+msgstr ""
+
+#: includes/class-admin-page.php:506
+msgid "No recent results to export. Run a find & replace first."
+msgstr ""
+
+#: includes/class-admin-page.php:510
+msgid "Activity log cleared."
+msgstr ""
+
+#: includes/class-admin-page.php:517
+msgid "Backup first."
+msgstr ""
+
+#: includes/class-admin-page.php:518
+msgid "Bulk replacements directly modify post content in the database and cannot be undone automatically. Take a fresh backup before running a live replacement, or use Dry Run to preview changes safely."
+msgstr ""
+
+#: includes/class-admin-page.php:540
+msgid "Find &amp; Replace Configuration"
+msgstr ""
+
+#: includes/class-admin-page.php:543
+msgid "Matching is case-sensitive and exact. Spaces, line breaks, and HTML are preserved exactly."
+msgstr ""
+
+#: includes/class-admin-page.php:550
+msgid "Search Text"
+msgstr ""
+
+#: includes/class-admin-page.php:560
+msgid "Paste the exact text to find…"
+msgstr ""
+
+#: includes/class-admin-page.php:564
+msgid "Exact, case-sensitive match only. No regex or wildcards."
+msgstr ""
+
+#: includes/class-admin-page.php:571
+msgid "Replace Text"
+msgstr ""
+
+#: includes/class-admin-page.php:579
+msgid "Paste the exact replacement text…"
+msgstr ""
+
+#: includes/class-admin-page.php:583
+msgid "The replacement is inserted exactly as entered. Leave empty to delete every match."
+msgstr ""
+
+#: includes/class-admin-page.php:590
+msgid "URLs / Paths"
+msgstr ""
+
+#: includes/class-admin-page.php:609
+msgid "One URL or path per line. Empty lines are ignored. Full URLs and relative paths are both supported."
+msgstr ""
+
+#: includes/class-admin-page.php:626
+msgid "Dry Run (Preview Only)"
+msgstr ""
+
+#: includes/class-admin-page.php:627
+msgid "Show what would change without writing to the database."
+msgstr ""
+
+#: includes/class-admin-page.php:637
+msgid "Tip: run a Dry Run first to verify your matches."
+msgstr ""
+
+#: includes/class-admin-page.php:652
+msgid "Run Find &amp; Replace"
+msgstr ""
+
+#: includes/class-admin-page.php:675
+msgid "How it works"
+msgstr ""
+
+#: includes/class-admin-page.php:680
+msgid "Paste the exact text to find and the exact text to replace it with."
+msgstr ""
+
+#: includes/class-admin-page.php:681
+msgid "List the URLs or relative paths of the posts you want to update — one per line."
+msgstr ""
+
+#: includes/class-admin-page.php:682
+msgid "Enable Dry Run to preview the changes, then disable it to apply them."
+msgstr ""
+
+#: includes/class-admin-page.php:683
+msgid "Review the results dashboard and export a CSV for your records."
+msgstr ""
+
+#: includes/class-admin-page.php:69 includes/class-admin-page.php:70
+msgid "Bulk URL Content Find & Replace"
+msgstr ""
+
+#: includes/class-admin-page.php:692
+msgid "Safety"
+msgstr ""
+
+#: includes/class-admin-page.php:697
+msgid "Capability-gated to administrators only."
+msgstr ""
+
+#: includes/class-admin-page.php:698
+msgid "Nonce-verified form submission."
+msgstr ""
+
+#: includes/class-admin-page.php:699
+msgid "Skips revisions, auto-drafts, and trashed posts."
+msgstr ""
+
+#: includes/class-admin-page.php:700
+msgid "Elementor page content is updated too, and its CSS cache is refreshed automatically."
+msgstr ""
+
+#: includes/class-admin-page.php:701
+msgid "Duplicate URLs are processed only once."
+msgstr ""
+
+#: includes/class-admin-page.php:702
+msgid "Exact, case-sensitive matching — no regex surprises."
+msgstr ""
+
+#: includes/class-admin-page.php:743
+msgid "Dry Run Preview Results"
+msgstr ""
+
+#: includes/class-admin-page.php:745
+msgid "Replacement Results"
+msgstr ""
+
+#: includes/class-admin-page.php:757
+msgid "Processed at %s"
+msgstr ""
+
+#: includes/class-admin-page.php:770
+msgid "Took %s"
+msgstr ""
+
+#: includes/class-admin-page.php:786
+msgid "Copy Results"
+msgstr ""
+
+#: includes/class-admin-page.php:790
+msgid "Export CSV"
+msgstr ""
+
+#: includes/class-admin-page.php:811
+msgid "URLs processed"
+msgstr ""
+
+#: includes/class-admin-page.php:817
+msgid "Successful updates"
+msgstr ""
+
+#: includes/class-admin-page.php:823
+msgid "Preview matches"
+msgstr ""
+
+#: includes/class-admin-page.php:829
+msgid "No matches"
+msgstr ""
+
+#: includes/class-admin-page.php:835
+msgid "Invalid URLs"
+msgstr ""
+
+#: includes/class-admin-page.php:841 includes/class-helper.php:214
+msgid "Failed"
+msgstr ""
+
+#: includes/class-admin-page.php:847
+msgid "Total replacements"
+msgstr ""
+
+#: includes/class-admin-page.php:853
+msgid "Content replacements"
+msgstr ""
+
+#: includes/class-admin-page.php:859
+msgid "Elementor replacements"
+msgstr ""
+
+#: includes/class-admin-page.php:908
+msgid "Content: %s"
+msgstr ""
+
+#: includes/class-admin-page.php:922
+msgid "Elementor: %s"
+msgstr ""
+
+#: includes/class-admin-page.php:958
+msgid "Pages that would be updated"
+msgstr ""
+
+#: includes/class-admin-page.php:959
+msgid "Pages updated in this run"
+msgstr ""
+
+#: includes/class-admin-page.php:962
+msgid "Dry run — nothing was written to the database. Disable Dry Run and re-submit to apply these changes."
+msgstr ""
+
+#: includes/class-admin-page.php:963
+msgid "These pages were modified in the database. Use View / Edit to verify each change."
+msgstr ""
+
+#: includes/class-admin-page.php:980 includes/class-admin-page.php:1106 includes/class-replacer.php:216
+msgid "(no title)"
+msgstr ""
+
+#: includes/class-helper.php:177
+msgid "%s ms"
+msgstr ""
+
+#: includes/class-helper.php:185
+msgid "%s s"
+msgstr ""
+
+#: includes/class-helper.php:195
+msgid "%1$d min %2$s s"
+msgstr ""
+
+#: includes/class-helper.php:209
+msgid "Updated"
+msgstr ""
+
+#: includes/class-helper.php:210
+msgid "Preview"
+msgstr ""
+
+#: includes/class-helper.php:211
+msgid "No match"
+msgstr ""
+
+#: includes/class-helper.php:212
+msgid "Invalid URL"
+msgstr ""
+
+#: includes/class-helper.php:213
+msgid "Skipped"
+msgstr ""
+
+#: includes/class-helper.php:215
+msgid "Duplicate"
+msgstr ""
+
+#: includes/class-helper.php:216
+msgid "Unsupported"
+msgstr ""
+
+#: includes/class-replacer.php:142
+msgid "Could not parse this line as a URL or path."
+msgstr ""
+
+#: includes/class-replacer.php:152
+msgid "No matching post, page, or CPT was found for this URL."
+msgstr ""
+
+#: includes/class-replacer.php:160
+msgid "This post was already processed earlier in the list."
+msgstr ""
+
+#: includes/class-replacer.php:173
+msgid "Post could not be loaded."
+msgstr ""
+
+#: includes/class-replacer.php:186
+msgid "Post status \"%s\" is not eligible for editing."
+msgstr ""
+
+#: includes/class-replacer.php:198
+msgid "Revisions are not edited directly."
+msgstr ""
+
+#: includes/class-replacer.php:209
+msgid "You do not have permission to edit this post."
+msgstr ""
+
+#: includes/class-replacer.php:249
+msgid "Elementor data could not be safely re-encoded; this post was left unchanged."
+msgstr ""
+
+#: includes/class-replacer.php:259
+msgid "The search text was not found in this post."
+msgstr ""
+
+#: includes/class-replacer.php:276
+msgid "%d replacement would be made (dry run)."
+msgid_plural "%d replacements would be made (dry run)."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/class-replacer.php:333
+msgid "Content did not change after replacement."
+msgstr ""
+
+#: includes/class-replacer.php:342
+msgid "%d replacement made successfully."
+msgid_plural "%d replacements made successfully."
+msgstr[0] ""
+msgstr[1] ""

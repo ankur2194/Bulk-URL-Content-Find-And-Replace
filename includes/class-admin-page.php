@@ -136,11 +136,17 @@ class Admin_Page {
 
 		check_admin_referer( Helper::NONCE_ACTION, Helper::NONCE_FIELD );
 
-		// wp_unslash before any sanitisation/processing — WP slashes everything in $_POST.
-		$search_raw  = isset( $_POST['bucfr_search'] )  ? (string) wp_unslash( $_POST['bucfr_search'] )  : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash
-		$replace_raw = isset( $_POST['bucfr_replace'] ) ? (string) wp_unslash( $_POST['bucfr_replace'] ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash
-		$urls_raw    = isset( $_POST['bucfr_urls'] )    ? (string) wp_unslash( $_POST['bucfr_urls'] )    : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.MissingUnslash
-		$dry_run     = isset( $_POST['bucfr_dry_run'] ) && '1' === (string) $_POST['bucfr_dry_run'];
+		// wp_unslash before any processing — WP slashes everything in $_POST.
+		//
+		// Search/replace are intentionally NOT passed through a sanitizer: this tool performs
+		// exact, byte-for-byte find/replace and must preserve the user's literal input verbatim,
+		// including HTML markup, whitespace, and multi-line text. Sanitizing would corrupt the
+		// match. Access is gated by Helper::CAPABILITY + nonce above, and every value is escaped
+		// on output (esc_textarea / esc_attr).
+		$search_raw  = isset( $_POST['bucfr_search'] )  ? (string) wp_unslash( $_POST['bucfr_search'] )  : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$replace_raw = isset( $_POST['bucfr_replace'] ) ? (string) wp_unslash( $_POST['bucfr_replace'] ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$urls_raw    = isset( $_POST['bucfr_urls'] )    ? sanitize_textarea_field( wp_unslash( $_POST['bucfr_urls'] ) ) : '';
+		$dry_run     = isset( $_POST['bucfr_dry_run'] ) && '1' === sanitize_text_field( wp_unslash( $_POST['bucfr_dry_run'] ) );
 
 		$errors = $this->validate( $search_raw, $urls_raw );
 
@@ -381,8 +387,9 @@ class Admin_Page {
 			exit;
 		}
 
-		// UTF-8 BOM so Excel renders correctly.
-		fwrite( $out, "\xEF\xBB\xBF" );
+		// UTF-8 BOM so Excel renders the CSV with the correct encoding. Written straight to
+		// the PHP output stream (the same destination fputcsv targets below).
+		echo "\xEF\xBB\xBF";
 
 		fputcsv(
 			$out,
@@ -418,7 +425,7 @@ class Admin_Page {
 			);
 		}
 
-		fclose( $out );
+		// The php://output stream is flushed and closed automatically when the request ends.
 		exit;
 	}
 
@@ -990,7 +997,7 @@ class Admin_Page {
 									<code class="bucfr-pill"><?php echo esc_html( $post_type ); ?></code>
 								<?php endif; ?>
 								<?php if ( $post_id ) : ?>
-									<span><?php echo esc_html( sprintf( __( 'ID: %d', 'bulk-url-content-find-replace' ), $post_id ) ); ?></span>
+									<span><?php echo esc_html( sprintf( /* translators: %d: post ID. */ __( 'ID: %d', 'bulk-url-content-find-replace' ), $post_id ) ); ?></span>
 								<?php endif; ?>
 								<span>
 									<?php
@@ -1115,7 +1122,7 @@ class Admin_Page {
 										<strong><?php echo esc_html( $title ); ?></strong>
 										<div class="bucfr-cell-post__meta">
 											<?php if ( $post_id ) : ?>
-												<span><?php echo esc_html( sprintf( __( 'ID: %d', 'bulk-url-content-find-replace' ), $post_id ) ); ?></span>
+												<span><?php echo esc_html( sprintf( /* translators: %d: post ID. */ __( 'ID: %d', 'bulk-url-content-find-replace' ), $post_id ) ); ?></span>
 											<?php endif; ?>
 											<?php if ( ! empty( $entry['resolved_url'] ) ) : ?>
 												<code><?php echo esc_html( $entry['resolved_url'] ); ?></code>
@@ -1229,7 +1236,7 @@ class Admin_Page {
 									<div class="bucfr-cell-post">
 										<strong><?php echo esc_html( $title ); ?></strong>
 										<div class="bucfr-cell-post__meta">
-											<span><?php echo esc_html( sprintf( __( 'ID: %d', 'bulk-url-content-find-replace' ), $post_id ) ); ?></span>
+											<span><?php echo esc_html( sprintf( /* translators: %d: post ID. */ __( 'ID: %d', 'bulk-url-content-find-replace' ), $post_id ) ); ?></span>
 											<?php if ( $edit_url ) : ?>
 												<a href="<?php echo esc_url( $edit_url ); ?>" target="_blank" rel="noopener noreferrer">
 													<?php esc_html_e( 'Edit', 'bulk-url-content-find-replace' ); ?>

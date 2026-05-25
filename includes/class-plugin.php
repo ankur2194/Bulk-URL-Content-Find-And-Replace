@@ -2,10 +2,10 @@
 /**
  * Core plugin orchestrator.
  *
- * @package BulkUrlContentFindReplace
+ * @package Replacely
  */
 
-namespace BUCFR;
+namespace Replacely;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;

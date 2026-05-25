@@ -2,17 +2,17 @@
 /**
  * Admin page controller, view layer, and request handler.
  *
- * @package BulkUrlContentFindReplace
+ * @package Replacely
  */
 
-namespace BUCFR;
+namespace Replacely;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
 /**
- * Renders the Tools → Bulk URL Content Find & Replace page and handles form submissions.
+ * Renders the Tools → Replacely page and handles form submissions.
  */
 class Admin_Page {
 
@@ -54,9 +54,9 @@ class Admin_Page {
 	public function register() {
 		add_action( 'admin_menu', array( $this, 'add_menu' ) );
 		add_action( 'admin_enqueue_scripts', array( $this, 'enqueue_assets' ) );
-		add_action( 'admin_post_bucfr_run', array( $this, 'handle_post' ) );
-		add_action( 'admin_post_bucfr_export_csv', array( $this, 'handle_csv_export' ) );
-		add_action( 'admin_post_bucfr_clear_log', array( $this, 'handle_clear_log' ) );
+		add_action( 'admin_post_replacely_run', array( $this, 'handle_post' ) );
+		add_action( 'admin_post_replacely_export_csv', array( $this, 'handle_csv_export' ) );
+		add_action( 'admin_post_replacely_clear_log', array( $this, 'handle_clear_log' ) );
 	}
 
 	/**
@@ -66,8 +66,8 @@ class Admin_Page {
 	 */
 	public function add_menu() {
 		$this->hook_suffix = add_management_page(
-			__( 'Bulk URL Content Find & Replace', 'bulk-url-content-find-replace' ),
-			__( 'Bulk URL Content Find & Replace', 'bulk-url-content-find-replace' ),
+			__( 'Replacely', 'replacely' ),
+			__( 'Replacely', 'replacely' ),
 			Helper::CAPABILITY,
 			Helper::PAGE_SLUG,
 			array( $this, 'render' )
@@ -86,32 +86,32 @@ class Admin_Page {
 		}
 
 		wp_enqueue_style(
-			'bucfr-admin',
-			BUCFR_PLUGIN_URL . 'assets/css/admin.css',
+			'replacely-admin',
+			REPLACELY_PLUGIN_URL . 'assets/css/admin.css',
 			array( 'dashicons' ),
-			BUCFR_VERSION
+			REPLACELY_VERSION
 		);
 
 		wp_enqueue_script(
-			'bucfr-admin',
-			BUCFR_PLUGIN_URL . 'assets/js/admin.js',
+			'replacely-admin',
+			REPLACELY_PLUGIN_URL . 'assets/js/admin.js',
 			array( 'jquery' ),
-			BUCFR_VERSION,
+			REPLACELY_VERSION,
 			true
 		);
 
 		wp_localize_script(
-			'bucfr-admin',
-			'BUCFR_I18N',
+			'replacely-admin',
+			'REPLACELY_I18N',
 			array(
-				'confirmReplace' => __( "You are about to update post content in the database. This action cannot be undone automatically.\n\nMake sure you have a recent backup. Continue?", 'bulk-url-content-find-replace' ),
-				'processing'     => __( 'Processing…', 'bulk-url-content-find-replace' ),
-				'run'            => __( 'Run Find & Replace', 'bulk-url-content-find-replace' ),
-				'previewLabel'   => __( 'Run Dry-Run Preview', 'bulk-url-content-find-replace' ),
-				'copied'         => __( 'Results copied to clipboard.', 'bulk-url-content-find-replace' ),
-				'copyFailed'     => __( 'Could not copy to clipboard.', 'bulk-url-content-find-replace' ),
-				'charsLabel'     => __( 'characters', 'bulk-url-content-find-replace' ),
-				'linesLabel'     => __( 'lines', 'bulk-url-content-find-replace' ),
+				'confirmReplace' => __( "You are about to update post content in the database. This action cannot be undone automatically.\n\nMake sure you have a recent backup. Continue?", 'replacely' ),
+				'processing'     => __( 'Processing…', 'replacely' ),
+				'run'            => __( 'Run Find & Replace', 'replacely' ),
+				'previewLabel'   => __( 'Run Dry-Run Preview', 'replacely' ),
+				'copied'         => __( 'Results copied to clipboard.', 'replacely' ),
+				'copyFailed'     => __( 'Could not copy to clipboard.', 'replacely' ),
+				'charsLabel'     => __( 'characters', 'replacely' ),
+				'linesLabel'     => __( 'lines', 'replacely' ),
 			)
 		);
 	}
@@ -128,8 +128,8 @@ class Admin_Page {
 	public function handle_post() {
 		if ( ! current_user_can( Helper::CAPABILITY ) ) {
 			wp_die(
-				esc_html__( 'You do not have permission to access this page.', 'bulk-url-content-find-replace' ),
-				esc_html__( 'Permission denied', 'bulk-url-content-find-replace' ),
+				esc_html__( 'You do not have permission to access this page.', 'replacely' ),
+				esc_html__( 'Permission denied', 'replacely' ),
 				array( 'response' => 403 )
 			);
 		}
@@ -143,10 +143,10 @@ class Admin_Page {
 		// including HTML markup, whitespace, and multi-line text. Sanitizing would corrupt the
 		// match. Access is gated by Helper::CAPABILITY + nonce above, and every value is escaped
 		// on output (esc_textarea / esc_attr).
-		$search_raw  = isset( $_POST['bucfr_search'] )  ? (string) wp_unslash( $_POST['bucfr_search'] )  : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		$replace_raw = isset( $_POST['bucfr_replace'] ) ? (string) wp_unslash( $_POST['bucfr_replace'] ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		$urls_raw    = isset( $_POST['bucfr_urls'] )    ? sanitize_textarea_field( wp_unslash( $_POST['bucfr_urls'] ) ) : '';
-		$dry_run     = isset( $_POST['bucfr_dry_run'] ) && '1' === sanitize_text_field( wp_unslash( $_POST['bucfr_dry_run'] ) );
+		$search_raw  = isset( $_POST['replacely_search'] )  ? (string) wp_unslash( $_POST['replacely_search'] )  : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$replace_raw = isset( $_POST['replacely_replace'] ) ? (string) wp_unslash( $_POST['replacely_replace'] ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$urls_raw    = isset( $_POST['replacely_urls'] )    ? sanitize_textarea_field( wp_unslash( $_POST['replacely_urls'] ) ) : '';
+		$dry_run     = isset( $_POST['replacely_dry_run'] ) && '1' === sanitize_text_field( wp_unslash( $_POST['replacely_dry_run'] ) );
 
 		$errors = $this->validate( $search_raw, $urls_raw );
 
@@ -182,7 +182,7 @@ class Admin_Page {
 			add_query_arg(
 				array(
 					'page'           => Helper::PAGE_SLUG,
-					'bucfr_run_done' => '1',
+					'replacely_run_done' => '1',
 				),
 				admin_url( 'tools.php' )
 			)
@@ -201,7 +201,7 @@ class Admin_Page {
 		if ( $user_id <= 0 ) {
 			return;
 		}
-		set_transient( 'bucfr_last_state_' . $user_id, $payload, 15 * MINUTE_IN_SECONDS );
+		set_transient( 'replacely_last_state_' . $user_id, $payload, 15 * MINUTE_IN_SECONDS );
 	}
 
 	/**
@@ -215,7 +215,7 @@ class Admin_Page {
 			return null;
 		}
 
-		$key   = 'bucfr_last_state_' . $user_id;
+		$key   = 'replacely_last_state_' . $user_id;
 		$state = get_transient( $key );
 		if ( ! is_array( $state ) ) {
 			return null;
@@ -250,7 +250,7 @@ class Admin_Page {
 		if ( $user_id <= 0 ) {
 			return;
 		}
-		set_transient( 'bucfr_last_results_' . $user_id, $results, 15 * MINUTE_IN_SECONDS );
+		set_transient( 'replacely_last_results_' . $user_id, $results, 15 * MINUTE_IN_SECONDS );
 	}
 
 	/**
@@ -300,13 +300,13 @@ class Admin_Page {
 	public function handle_clear_log() {
 		if ( ! current_user_can( Helper::CAPABILITY ) ) {
 			wp_die(
-				esc_html__( 'You do not have permission to access this page.', 'bulk-url-content-find-replace' ),
-				esc_html__( 'Permission denied', 'bulk-url-content-find-replace' ),
+				esc_html__( 'You do not have permission to access this page.', 'replacely' ),
+				esc_html__( 'Permission denied', 'replacely' ),
 				array( 'response' => 403 )
 			);
 		}
 
-		check_admin_referer( 'bucfr_clear_log' );
+		check_admin_referer( 'replacely_clear_log' );
 
 		Helper::clear_log();
 
@@ -314,7 +314,7 @@ class Admin_Page {
 			add_query_arg(
 				array(
 					'page'             => Helper::PAGE_SLUG,
-					'bucfr_log_cleared' => '1',
+					'replacely_log_cleared' => '1',
 				),
 				admin_url( 'tools.php' )
 			)
@@ -333,12 +333,12 @@ class Admin_Page {
 		$errors = array();
 
 		if ( '' === $search ) {
-			$errors[] = __( 'Please enter the text you want to search for.', 'bulk-url-content-find-replace' );
+			$errors[] = __( 'Please enter the text you want to search for.', 'replacely' );
 		}
 
 		$lines = Helper::split_lines( $urls );
 		if ( empty( $lines ) ) {
-			$errors[] = __( 'Please enter at least one URL or path (one per line).', 'bulk-url-content-find-replace' );
+			$errors[] = __( 'Please enter at least one URL or path (one per line).', 'replacely' );
 		}
 
 		return $errors;
@@ -352,23 +352,23 @@ class Admin_Page {
 	public function handle_csv_export() {
 		if ( ! current_user_can( Helper::CAPABILITY ) ) {
 			wp_die(
-				esc_html__( 'You do not have permission to access this page.', 'bulk-url-content-find-replace' ),
-				esc_html__( 'Permission denied', 'bulk-url-content-find-replace' ),
+				esc_html__( 'You do not have permission to access this page.', 'replacely' ),
+				esc_html__( 'Permission denied', 'replacely' ),
 				array( 'response' => 403 )
 			);
 		}
 
-		check_admin_referer( 'bucfr_export_csv' );
+		check_admin_referer( 'replacely_export_csv' );
 
 		$user_id = get_current_user_id();
-		$results = $user_id > 0 ? get_transient( 'bucfr_last_results_' . $user_id ) : false;
+		$results = $user_id > 0 ? get_transient( 'replacely_last_results_' . $user_id ) : false;
 
 		if ( ! is_array( $results ) || empty( $results['rows'] ) ) {
 			wp_safe_redirect(
 				add_query_arg(
 					array(
 						'page'                 => Helper::PAGE_SLUG,
-						'bucfr_export_failed' => '1',
+						'replacely_export_failed' => '1',
 					),
 					admin_url( 'tools.php' )
 				)
@@ -376,7 +376,7 @@ class Admin_Page {
 			exit;
 		}
 
-		$filename = sprintf( 'bucfr-results-%s.csv', gmdate( 'Y-m-d_H-i-s' ) );
+		$filename = sprintf( 'replacely-results-%s.csv', gmdate( 'Y-m-d_H-i-s' ) );
 
 		nocache_headers();
 		header( 'Content-Type: text/csv; charset=utf-8' );
@@ -394,33 +394,36 @@ class Admin_Page {
 		fputcsv(
 			$out,
 			array(
-				__( 'Input', 'bulk-url-content-find-replace' ),
-				__( 'Resolved URL', 'bulk-url-content-find-replace' ),
-				__( 'Post ID', 'bulk-url-content-find-replace' ),
-				__( 'Post Type', 'bulk-url-content-find-replace' ),
-				__( 'Post Title', 'bulk-url-content-find-replace' ),
-				__( 'Status', 'bulk-url-content-find-replace' ),
-				__( 'Replacements', 'bulk-url-content-find-replace' ),
-				__( 'Content Replacements', 'bulk-url-content-find-replace' ),
-				__( 'Elementor Replacements', 'bulk-url-content-find-replace' ),
-				__( 'Message', 'bulk-url-content-find-replace' ),
+				__( 'Input', 'replacely' ),
+				__( 'Resolved URL', 'replacely' ),
+				__( 'Post ID', 'replacely' ),
+				__( 'Post Type', 'replacely' ),
+				__( 'Post Title', 'replacely' ),
+				__( 'Status', 'replacely' ),
+				__( 'Replacements', 'replacely' ),
+				__( 'Content Replacements', 'replacely' ),
+				__( 'Elementor Replacements', 'replacely' ),
+				__( 'Message', 'replacely' ),
 			)
 		);
 
 		foreach ( $results['rows'] as $row ) {
 			fputcsv(
 				$out,
-				array(
-					isset( $row['input'] )        ? $row['input']        : '',
-					isset( $row['resolved_url'] ) ? $row['resolved_url'] : '',
-					isset( $row['post_id'] )      ? $row['post_id']      : '',
-					isset( $row['post_type'] )    ? $row['post_type']    : '',
-					isset( $row['post_title'] )   ? $row['post_title']   : '',
-					isset( $row['status'] )       ? Helper::status_label( $row['status'] ) : '',
-					isset( $row['replacements'] ) ? $row['replacements'] : 0,
-					isset( $row['content_replacements'] )   ? $row['content_replacements']   : 0,
-					isset( $row['elementor_replacements'] ) ? $row['elementor_replacements'] : 0,
-					isset( $row['message'] )      ? $row['message']      : '',
+				array_map(
+					array( $this, 'csv_escape_formula' ),
+					array(
+						isset( $row['input'] )        ? $row['input']        : '',
+						isset( $row['resolved_url'] ) ? $row['resolved_url'] : '',
+						isset( $row['post_id'] )      ? $row['post_id']      : '',
+						isset( $row['post_type'] )    ? $row['post_type']    : '',
+						isset( $row['post_title'] )   ? $row['post_title']   : '',
+						isset( $row['status'] )       ? Helper::status_label( $row['status'] ) : '',
+						isset( $row['replacements'] ) ? $row['replacements'] : 0,
+						isset( $row['content_replacements'] )   ? $row['content_replacements']   : 0,
+						isset( $row['elementor_replacements'] ) ? $row['elementor_replacements'] : 0,
+						isset( $row['message'] )      ? $row['message']      : '',
+					)
 				)
 			);
 		}
@@ -430,13 +433,31 @@ class Admin_Page {
 	}
 
 	/**
+	 * Neutralize CSV/spreadsheet formula injection in a cell value.
+	 *
+	 * Excel, LibreOffice Calc, and Google Sheets execute a cell whose text
+	 * begins with =, +, -, @, or a tab/CR control character. Prefixing such
+	 * values with a single quote forces them to be treated as plain text.
+	 * Non-string values (e.g. integer counts) are returned unchanged.
+	 *
+	 * @param mixed $value Raw cell value.
+	 * @return mixed
+	 */
+	private function csv_escape_formula( $value ) {
+		if ( is_string( $value ) && '' !== $value && preg_match( '/^[=+\-@\t\r]/', $value ) ) {
+			return "'" . $value;
+		}
+		return $value;
+	}
+
+	/**
 	 * Render the admin screen.
 	 *
 	 * @return void
 	 */
 	public function render() {
 		if ( ! current_user_can( Helper::CAPABILITY ) ) {
-			wp_die( esc_html__( 'You do not have permission to access this page.', 'bulk-url-content-find-replace' ) );
+			wp_die( esc_html__( 'You do not have permission to access this page.', 'replacely' ) );
 		}
 
 		// If the user just came back from a submission, hydrate the form with the
@@ -444,36 +465,36 @@ class Admin_Page {
 		$stored = $this->consume_state();
 		$state  = is_array( $stored ) ? $stored : $this->state;
 		?>
-		<div class="wrap bucfr-wrap">
-			<div class="bucfr-header">
-				<div class="bucfr-header__title">
+		<div class="wrap replacely-wrap">
+			<div class="replacely-header">
+				<div class="replacely-header__title">
 					<span class="dashicons dashicons-search" aria-hidden="true"></span>
 					<div>
-						<h1><?php esc_html_e( 'Bulk URL Content Find &amp; Replace', 'bulk-url-content-find-replace' ); ?></h1>
-						<p class="bucfr-header__subtitle">
-							<?php esc_html_e( 'Replace exact text inside any post, page, or custom post type — including pages built with Elementor — by listing the URLs or paths to process.', 'bulk-url-content-find-replace' ); ?>
+						<h1><?php esc_html_e( 'Replacely', 'replacely' ); ?></h1>
+						<p class="replacely-header__subtitle">
+							<?php esc_html_e( 'Replace exact text inside any post, page, or custom post type — including pages built with Elementor — by listing the URLs or paths to process.', 'replacely' ); ?>
 						</p>
 					</div>
 				</div>
-				<div class="bucfr-header__badges">
-					<span class="bucfr-badge bucfr-badge--info">
+				<div class="replacely-header__badges">
+					<span class="replacely-badge replacely-badge--info">
 						<span class="dashicons dashicons-shield" aria-hidden="true"></span>
-						<?php esc_html_e( 'Admin only', 'bulk-url-content-find-replace' ); ?>
+						<?php esc_html_e( 'Admin only', 'replacely' ); ?>
 					</span>
-					<span class="bucfr-badge bucfr-badge--info">
+					<span class="replacely-badge replacely-badge--info">
 						<span class="dashicons dashicons-database-view" aria-hidden="true"></span>
-						<?php esc_html_e( 'Exact match', 'bulk-url-content-find-replace' ); ?>
+						<?php esc_html_e( 'Exact match', 'replacely' ); ?>
 					</span>
 				</div>
 			</div>
 
 			<?php $this->render_notices( $state ); ?>
 
-			<div class="bucfr-grid">
-				<div class="bucfr-col-main">
+			<div class="replacely-grid">
+				<div class="replacely-col-main">
 					<?php $this->render_form( $state ); ?>
 				</div>
-				<aside class="bucfr-col-side">
+				<aside class="replacely-col-side">
 					<?php $this->render_sidebar(); ?>
 				</aside>
 			</div>
@@ -495,27 +516,27 @@ class Admin_Page {
 	 */
 	private function render_notices( $state ) {
 		if ( ! empty( $state['errors'] ) ) {
-			echo '<div class="notice notice-error bucfr-notice"><ul>';
+			echo '<div class="notice notice-error replacely-notice"><ul>';
 			foreach ( $state['errors'] as $error ) {
 				echo '<li>' . esc_html( $error ) . '</li>';
 			}
 			echo '</ul></div>';
 		}
 
-		if ( isset( $_GET['bucfr_export_failed'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			echo '<div class="notice notice-warning bucfr-notice"><p>' . esc_html__( 'No recent results to export. Run a find & replace first.', 'bulk-url-content-find-replace' ) . '</p></div>';
+		if ( isset( $_GET['replacely_export_failed'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			echo '<div class="notice notice-warning replacely-notice"><p>' . esc_html__( 'No recent results to export. Run a find & replace first.', 'replacely' ) . '</p></div>';
 		}
 
-		if ( isset( $_GET['bucfr_log_cleared'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
-			echo '<div class="notice notice-success bucfr-notice is-dismissible"><p>' . esc_html__( 'Activity log cleared.', 'bulk-url-content-find-replace' ) . '</p></div>';
+		if ( isset( $_GET['replacely_log_cleared'] ) ) { // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+			echo '<div class="notice notice-success replacely-notice is-dismissible"><p>' . esc_html__( 'Activity log cleared.', 'replacely' ) . '</p></div>';
 		}
 
 		?>
-		<div class="notice notice-warning bucfr-notice bucfr-notice--backup">
+		<div class="notice notice-warning replacely-notice replacely-notice--backup">
 			<p>
 				<span class="dashicons dashicons-backup" aria-hidden="true"></span>
-				<strong><?php esc_html_e( 'Backup first.', 'bulk-url-content-find-replace' ); ?></strong>
-				<?php esc_html_e( 'Bulk replacements directly modify post content in the database and cannot be undone automatically. Take a fresh backup before running a live replacement, or use Dry Run to preview changes safely.', 'bulk-url-content-find-replace' ); ?>
+				<strong><?php esc_html_e( 'Backup first.', 'replacely' ); ?></strong>
+				<?php esc_html_e( 'Bulk replacements directly modify post content in the database and cannot be undone automatically. Take a fresh backup before running a live replacement, or use Dry Run to preview changes safely.', 'replacely' ); ?>
 			</p>
 		</div>
 		<?php
@@ -530,70 +551,70 @@ class Admin_Page {
 	private function render_form( $state ) {
 		$action_url = admin_url( 'admin-post.php' );
 		?>
-		<form class="bucfr-card bucfr-form" method="post" action="<?php echo esc_url( $action_url ); ?>" id="bucfr-form" novalidate>
-			<input type="hidden" name="action" value="bucfr_run" />
+		<form class="replacely-card replacely-form" method="post" action="<?php echo esc_url( $action_url ); ?>" id="replacely-form" novalidate>
+			<input type="hidden" name="action" value="replacely_run" />
 			<?php wp_nonce_field( Helper::NONCE_ACTION, Helper::NONCE_FIELD ); ?>
 
-			<div class="bucfr-card__head">
+			<div class="replacely-card__head">
 				<h2>
 					<span class="dashicons dashicons-edit" aria-hidden="true"></span>
-					<?php esc_html_e( 'Find &amp; Replace Configuration', 'bulk-url-content-find-replace' ); ?>
+					<?php esc_html_e( 'Find &amp; Replace Configuration', 'replacely' ); ?>
 				</h2>
-				<p class="bucfr-card__subtitle">
-					<?php esc_html_e( 'Matching is case-sensitive and exact. Spaces, line breaks, and HTML are preserved exactly.', 'bulk-url-content-find-replace' ); ?>
+				<p class="replacely-card__subtitle">
+					<?php esc_html_e( 'Matching is case-sensitive and exact. Spaces, line breaks, and HTML are preserved exactly.', 'replacely' ); ?>
 				</p>
 			</div>
 
-			<div class="bucfr-card__body">
-				<div class="bucfr-field">
-					<label for="bucfr_search">
-						<?php esc_html_e( 'Search Text', 'bulk-url-content-find-replace' ); ?>
-						<span class="bucfr-required" aria-hidden="true">*</span>
+			<div class="replacely-card__body">
+				<div class="replacely-field">
+					<label for="replacely_search">
+						<?php esc_html_e( 'Search Text', 'replacely' ); ?>
+						<span class="replacely-required" aria-hidden="true">*</span>
 					</label>
 					<textarea
-						id="bucfr_search"
-						name="bucfr_search"
-						class="bucfr-textarea bucfr-textarea--medium large-text code"
+						id="replacely_search"
+						name="replacely_search"
+						class="replacely-textarea replacely-textarea--medium large-text code"
 						rows="6"
 						required
 						aria-required="true"
-						placeholder="<?php esc_attr_e( 'Paste the exact text to find…', 'bulk-url-content-find-replace' ); ?>"
-						data-bucfr-counter="bucfr_search_counter"
+						placeholder="<?php esc_attr_e( 'Paste the exact text to find…', 'replacely' ); ?>"
+						data-replacely-counter="replacely_search_counter"
 					><?php echo esc_textarea( $state['search'] ); ?></textarea>
-					<div class="bucfr-field__meta">
-						<p class="description"><?php esc_html_e( 'Exact, case-sensitive match only. No regex or wildcards.', 'bulk-url-content-find-replace' ); ?></p>
-						<span class="bucfr-counter" id="bucfr_search_counter" aria-live="polite">0</span>
+					<div class="replacely-field__meta">
+						<p class="description"><?php esc_html_e( 'Exact, case-sensitive match only. No regex or wildcards.', 'replacely' ); ?></p>
+						<span class="replacely-counter" id="replacely_search_counter" aria-live="polite">0</span>
 					</div>
 				</div>
 
-				<div class="bucfr-field">
-					<label for="bucfr_replace">
-						<?php esc_html_e( 'Replace Text', 'bulk-url-content-find-replace' ); ?>
-						<span class="bucfr-required" aria-hidden="true">*</span>
+				<div class="replacely-field">
+					<label for="replacely_replace">
+						<?php esc_html_e( 'Replace Text', 'replacely' ); ?>
+						<span class="replacely-required" aria-hidden="true">*</span>
 					</label>
 					<textarea
-						id="bucfr_replace"
-						name="bucfr_replace"
-						class="bucfr-textarea bucfr-textarea--medium large-text code"
+						id="replacely_replace"
+						name="replacely_replace"
+						class="replacely-textarea replacely-textarea--medium large-text code"
 						rows="6"
-						placeholder="<?php esc_attr_e( 'Paste the exact replacement text…', 'bulk-url-content-find-replace' ); ?>"
-						data-bucfr-counter="bucfr_replace_counter"
+						placeholder="<?php esc_attr_e( 'Paste the exact replacement text…', 'replacely' ); ?>"
+						data-replacely-counter="replacely_replace_counter"
 					><?php echo esc_textarea( $state['replace'] ); ?></textarea>
-					<div class="bucfr-field__meta">
-						<p class="description"><?php esc_html_e( 'The replacement is inserted exactly as entered. Leave empty to delete every match.', 'bulk-url-content-find-replace' ); ?></p>
-						<span class="bucfr-counter" id="bucfr_replace_counter" aria-live="polite">0</span>
+					<div class="replacely-field__meta">
+						<p class="description"><?php esc_html_e( 'The replacement is inserted exactly as entered. Leave empty to delete every match.', 'replacely' ); ?></p>
+						<span class="replacely-counter" id="replacely_replace_counter" aria-live="polite">0</span>
 					</div>
 				</div>
 
-				<div class="bucfr-field">
-					<label for="bucfr_urls">
-						<?php esc_html_e( 'URLs / Paths', 'bulk-url-content-find-replace' ); ?>
-						<span class="bucfr-required" aria-hidden="true">*</span>
+				<div class="replacely-field">
+					<label for="replacely_urls">
+						<?php esc_html_e( 'URLs / Paths', 'replacely' ); ?>
+						<span class="replacely-required" aria-hidden="true">*</span>
 					</label>
 					<textarea
-						id="bucfr_urls"
-						name="bucfr_urls"
-						class="bucfr-textarea bucfr-textarea--tall large-text code"
+						id="replacely_urls"
+						name="replacely_urls"
+						class="replacely-textarea replacely-textarea--tall large-text code"
 						rows="10"
 						required
 						aria-required="true"
@@ -602,58 +623,58 @@ class Admin_Page {
 								"https://example.com/sample-page/\n/another-page/\n/blog/my-post/"
 							);
 						?>"
-						data-bucfr-lines="bucfr_urls_counter"
+						data-replacely-lines="replacely_urls_counter"
 					><?php echo esc_textarea( $state['urls'] ); ?></textarea>
-					<div class="bucfr-field__meta">
+					<div class="replacely-field__meta">
 						<p class="description">
-							<?php esc_html_e( 'One URL or path per line. Empty lines are ignored. Full URLs and relative paths are both supported.', 'bulk-url-content-find-replace' ); ?>
+							<?php esc_html_e( 'One URL or path per line. Empty lines are ignored. Full URLs and relative paths are both supported.', 'replacely' ); ?>
 						</p>
-						<span class="bucfr-counter" id="bucfr_urls_counter" aria-live="polite">0</span>
+						<span class="replacely-counter" id="replacely_urls_counter" aria-live="polite">0</span>
 					</div>
 				</div>
 
-				<div class="bucfr-field bucfr-field--inline">
-					<label class="bucfr-toggle" for="bucfr_dry_run">
+				<div class="replacely-field replacely-field--inline">
+					<label class="replacely-toggle" for="replacely_dry_run">
 						<input
 							type="checkbox"
-							id="bucfr_dry_run"
-							name="bucfr_dry_run"
+							id="replacely_dry_run"
+							name="replacely_dry_run"
 							value="1"
 							<?php checked( true, ! empty( $state['dry_run'] ) ); ?>
 						/>
-						<span class="bucfr-toggle__slider" aria-hidden="true"></span>
-						<span class="bucfr-toggle__label">
-							<strong><?php esc_html_e( 'Dry Run (Preview Only)', 'bulk-url-content-find-replace' ); ?></strong>
-							<span class="bucfr-toggle__hint"><?php esc_html_e( 'Show what would change without writing to the database.', 'bulk-url-content-find-replace' ); ?></span>
+						<span class="replacely-toggle__slider" aria-hidden="true"></span>
+						<span class="replacely-toggle__label">
+							<strong><?php esc_html_e( 'Dry Run (Preview Only)', 'replacely' ); ?></strong>
+							<span class="replacely-toggle__hint"><?php esc_html_e( 'Show what would change without writing to the database.', 'replacely' ); ?></span>
 						</span>
 					</label>
 				</div>
 			</div>
 
-			<div class="bucfr-actionbar">
-				<div class="bucfr-actionbar__left">
-					<span class="bucfr-actionbar__hint">
+			<div class="replacely-actionbar">
+				<div class="replacely-actionbar__left">
+					<span class="replacely-actionbar__hint">
 						<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
-						<?php esc_html_e( 'Tip: run a Dry Run first to verify your matches.', 'bulk-url-content-find-replace' ); ?>
+						<?php esc_html_e( 'Tip: run a Dry Run first to verify your matches.', 'replacely' ); ?>
 					</span>
 				</div>
-				<div class="bucfr-actionbar__right">
+				<div class="replacely-actionbar__right">
 					<button
 						type="submit"
-						class="button button-primary button-hero bucfr-submit"
-						id="bucfr-submit"
+						class="button button-primary button-hero replacely-submit"
+						id="replacely-submit"
 						data-confirm-on-live="1"
 					>
-						<span class="bucfr-submit__label">
+						<span class="replacely-submit__label">
 							<?php
 							if ( ! empty( $state['dry_run'] ) ) {
-								esc_html_e( 'Run Dry-Run Preview', 'bulk-url-content-find-replace' );
+								esc_html_e( 'Run Dry-Run Preview', 'replacely' );
 							} else {
-								esc_html_e( 'Run Find &amp; Replace', 'bulk-url-content-find-replace' );
+								esc_html_e( 'Run Find &amp; Replace', 'replacely' );
 							}
 							?>
 						</span>
-						<span class="bucfr-submit__spinner" aria-hidden="true"></span>
+						<span class="replacely-submit__spinner" aria-hidden="true"></span>
 					</button>
 				</div>
 			</div>
@@ -668,38 +689,38 @@ class Admin_Page {
 	 */
 	private function render_sidebar() {
 		?>
-		<div class="bucfr-card bucfr-card--side">
-			<div class="bucfr-card__head">
+		<div class="replacely-card replacely-card--side">
+			<div class="replacely-card__head">
 				<h2>
 					<span class="dashicons dashicons-lightbulb" aria-hidden="true"></span>
-					<?php esc_html_e( 'How it works', 'bulk-url-content-find-replace' ); ?>
+					<?php esc_html_e( 'How it works', 'replacely' ); ?>
 				</h2>
 			</div>
-			<div class="bucfr-card__body">
-				<ol class="bucfr-steps">
-					<li><?php esc_html_e( 'Paste the exact text to find and the exact text to replace it with.', 'bulk-url-content-find-replace' ); ?></li>
-					<li><?php esc_html_e( 'List the URLs or relative paths of the posts you want to update — one per line.', 'bulk-url-content-find-replace' ); ?></li>
-					<li><?php esc_html_e( 'Enable Dry Run to preview the changes, then disable it to apply them.', 'bulk-url-content-find-replace' ); ?></li>
-					<li><?php esc_html_e( 'Review the results dashboard and export a CSV for your records.', 'bulk-url-content-find-replace' ); ?></li>
+			<div class="replacely-card__body">
+				<ol class="replacely-steps">
+					<li><?php esc_html_e( 'Paste the exact text to find and the exact text to replace it with.', 'replacely' ); ?></li>
+					<li><?php esc_html_e( 'List the URLs or relative paths of the posts you want to update — one per line.', 'replacely' ); ?></li>
+					<li><?php esc_html_e( 'Enable Dry Run to preview the changes, then disable it to apply them.', 'replacely' ); ?></li>
+					<li><?php esc_html_e( 'Review the results dashboard and export a CSV for your records.', 'replacely' ); ?></li>
 				</ol>
 			</div>
 		</div>
 
-		<div class="bucfr-card bucfr-card--side">
-			<div class="bucfr-card__head">
+		<div class="replacely-card replacely-card--side">
+			<div class="replacely-card__head">
 				<h2>
 					<span class="dashicons dashicons-shield-alt" aria-hidden="true"></span>
-					<?php esc_html_e( 'Safety', 'bulk-url-content-find-replace' ); ?>
+					<?php esc_html_e( 'Safety', 'replacely' ); ?>
 				</h2>
 			</div>
-			<div class="bucfr-card__body">
-				<ul class="bucfr-bullets">
-					<li><?php esc_html_e( 'Capability-gated to administrators only.', 'bulk-url-content-find-replace' ); ?></li>
-					<li><?php esc_html_e( 'Nonce-verified form submission.', 'bulk-url-content-find-replace' ); ?></li>
-					<li><?php esc_html_e( 'Skips revisions, auto-drafts, and trashed posts.', 'bulk-url-content-find-replace' ); ?></li>
-					<li><?php esc_html_e( 'Elementor page content is updated too, and its CSS cache is refreshed automatically.', 'bulk-url-content-find-replace' ); ?></li>
-					<li><?php esc_html_e( 'Duplicate URLs are processed only once.', 'bulk-url-content-find-replace' ); ?></li>
-					<li><?php esc_html_e( 'Exact, case-sensitive matching — no regex surprises.', 'bulk-url-content-find-replace' ); ?></li>
+			<div class="replacely-card__body">
+				<ul class="replacely-bullets">
+					<li><?php esc_html_e( 'Capability-gated to administrators only.', 'replacely' ); ?></li>
+					<li><?php esc_html_e( 'Nonce-verified form submission.', 'replacely' ); ?></li>
+					<li><?php esc_html_e( 'Skips revisions, auto-drafts, and trashed posts.', 'replacely' ); ?></li>
+					<li><?php esc_html_e( 'Elementor page content is updated too, and its CSS cache is refreshed automatically.', 'replacely' ); ?></li>
+					<li><?php esc_html_e( 'Duplicate URLs are processed only once.', 'replacely' ); ?></li>
+					<li><?php esc_html_e( 'Exact, case-sensitive matching — no regex surprises.', 'replacely' ); ?></li>
 				</ul>
 			</div>
 		</div>
@@ -720,10 +741,10 @@ class Admin_Page {
 
 		$export_url = wp_nonce_url(
 			add_query_arg(
-				array( 'action' => 'bucfr_export_csv' ),
+				array( 'action' => 'replacely_export_csv' ),
 				admin_url( 'admin-post.php' )
 			),
-			'bucfr_export_csv'
+			'replacely_export_csv'
 		);
 
 		$processed_at = ! empty( $summary['timestamp'] )
@@ -734,40 +755,40 @@ class Admin_Page {
 			: '';
 
 		?>
-		<section class="bucfr-card bucfr-results" id="bucfr-results">
-			<div class="bucfr-card__head bucfr-results__head">
+		<section class="replacely-card replacely-results" id="replacely-results">
+			<div class="replacely-card__head replacely-results__head">
 				<h2>
 					<span class="dashicons dashicons-chart-bar" aria-hidden="true"></span>
 					<?php
 					if ( $is_dry ) {
-						esc_html_e( 'Dry Run Preview Results', 'bulk-url-content-find-replace' );
+						esc_html_e( 'Dry Run Preview Results', 'replacely' );
 					} else {
-						esc_html_e( 'Replacement Results', 'bulk-url-content-find-replace' );
+						esc_html_e( 'Replacement Results', 'replacely' );
 					}
 					?>
 				</h2>
-				<div class="bucfr-results__meta">
+				<div class="replacely-results__meta">
 					<?php if ( $processed_at ) : ?>
-						<span class="bucfr-meta">
+						<span class="replacely-meta">
 							<span class="dashicons dashicons-clock" aria-hidden="true"></span>
 							<?php
 							echo esc_html(
 								sprintf(
 									/* translators: %s: formatted date and time. */
-									__( 'Processed at %s', 'bulk-url-content-find-replace' ),
+									__( 'Processed at %s', 'replacely' ),
 									$processed_at
 								)
 							);
 							?>
 						</span>
 					<?php endif; ?>
-					<span class="bucfr-meta">
+					<span class="replacely-meta">
 						<span class="dashicons dashicons-performance" aria-hidden="true"></span>
 						<?php
 						echo esc_html(
 							sprintf(
 								/* translators: %s: formatted duration. */
-								__( 'Took %s', 'bulk-url-content-find-replace' ),
+								__( 'Took %s', 'replacely' ),
 								Helper::format_duration( isset( $summary['duration'] ) ? (float) $summary['duration'] : 0 )
 							)
 						);
@@ -780,16 +801,16 @@ class Admin_Page {
 
 			<?php $this->render_updated_pages_panel( $rows, $is_dry ); ?>
 
-			<div class="bucfr-results__toolbar">
-				<button type="button" class="button bucfr-copy" data-bucfr-copy>
+			<div class="replacely-results__toolbar">
+				<button type="button" class="button replacely-copy" data-replacely-copy>
 					<span class="dashicons dashicons-clipboard" aria-hidden="true"></span>
-					<?php esc_html_e( 'Copy Results', 'bulk-url-content-find-replace' ); ?>
+					<?php esc_html_e( 'Copy Results', 'replacely' ); ?>
 				</button>
 				<a class="button button-primary" href="<?php echo esc_url( $export_url ); ?>">
 					<span class="dashicons dashicons-download" aria-hidden="true"></span>
-					<?php esc_html_e( 'Export CSV', 'bulk-url-content-find-replace' ); ?>
+					<?php esc_html_e( 'Export CSV', 'replacely' ); ?>
 				</a>
-				<span class="bucfr-results__status" aria-live="polite"></span>
+				<span class="replacely-results__status" aria-live="polite"></span>
 			</div>
 
 			<?php $this->render_results_table( $rows ); ?>
@@ -808,67 +829,67 @@ class Admin_Page {
 			array(
 				'tone'  => 'neutral',
 				'icon'  => 'list-view',
-				'label' => __( 'URLs processed', 'bulk-url-content-find-replace' ),
+				'label' => __( 'URLs processed', 'replacely' ),
 				'value' => isset( $summary['total'] ) ? (int) $summary['total'] : 0,
 			),
 			array(
 				'tone'  => 'success',
 				'icon'  => 'yes-alt',
-				'label' => __( 'Successful updates', 'bulk-url-content-find-replace' ),
+				'label' => __( 'Successful updates', 'replacely' ),
 				'value' => isset( $summary['updated'] ) ? (int) $summary['updated'] : 0,
 			),
 			array(
 				'tone'  => 'info',
 				'icon'  => 'visibility',
-				'label' => __( 'Preview matches', 'bulk-url-content-find-replace' ),
+				'label' => __( 'Preview matches', 'replacely' ),
 				'value' => isset( $summary['previewed'] ) ? (int) $summary['previewed'] : 0,
 			),
 			array(
 				'tone'  => 'warning',
 				'icon'  => 'minus',
-				'label' => __( 'No matches', 'bulk-url-content-find-replace' ),
+				'label' => __( 'No matches', 'replacely' ),
 				'value' => isset( $summary['no_match'] ) ? (int) $summary['no_match'] : 0,
 			),
 			array(
 				'tone'  => 'error',
 				'icon'  => 'dismiss',
-				'label' => __( 'Invalid URLs', 'bulk-url-content-find-replace' ),
+				'label' => __( 'Invalid URLs', 'replacely' ),
 				'value' => isset( $summary['invalid'] ) ? (int) $summary['invalid'] : 0,
 			),
 			array(
 				'tone'  => 'error',
 				'icon'  => 'warning',
-				'label' => __( 'Failed', 'bulk-url-content-find-replace' ),
+				'label' => __( 'Failed', 'replacely' ),
 				'value' => isset( $summary['failed'] ) ? (int) $summary['failed'] : 0,
 			),
 			array(
 				'tone'  => 'neutral',
 				'icon'  => 'controls-repeat',
-				'label' => __( 'Total replacements', 'bulk-url-content-find-replace' ),
+				'label' => __( 'Total replacements', 'replacely' ),
 				'value' => isset( $summary['total_replacements'] ) ? (int) $summary['total_replacements'] : 0,
 			),
 			array(
 				'tone'  => 'info',
 				'icon'  => 'media-text',
-				'label' => __( 'Content replacements', 'bulk-url-content-find-replace' ),
+				'label' => __( 'Content replacements', 'replacely' ),
 				'value' => isset( $summary['content_replacements'] ) ? (int) $summary['content_replacements'] : 0,
 			),
 			array(
 				'tone'  => 'info',
 				'icon'  => 'layout',
-				'label' => __( 'Elementor replacements', 'bulk-url-content-find-replace' ),
+				'label' => __( 'Elementor replacements', 'replacely' ),
 				'value' => isset( $summary['elementor_replacements'] ) ? (int) $summary['elementor_replacements'] : 0,
 			),
 		);
 
-		echo '<div class="bucfr-tiles">';
+		echo '<div class="replacely-tiles">';
 		foreach ( $tiles as $tile ) {
 			?>
-			<div class="bucfr-tile bucfr-tile--<?php echo esc_attr( $tile['tone'] ); ?>">
-				<span class="bucfr-tile__icon dashicons dashicons-<?php echo esc_attr( $tile['icon'] ); ?>" aria-hidden="true"></span>
-				<div class="bucfr-tile__body">
-					<div class="bucfr-tile__value"><?php echo esc_html( number_format_i18n( $tile['value'] ) ); ?></div>
-					<div class="bucfr-tile__label"><?php echo esc_html( $tile['label'] ); ?></div>
+			<div class="replacely-tile replacely-tile--<?php echo esc_attr( $tile['tone'] ); ?>">
+				<span class="replacely-tile__icon dashicons dashicons-<?php echo esc_attr( $tile['icon'] ); ?>" aria-hidden="true"></span>
+				<div class="replacely-tile__body">
+					<div class="replacely-tile__value"><?php echo esc_html( number_format_i18n( $tile['value'] ) ); ?></div>
+					<div class="replacely-tile__label"><?php echo esc_html( $tile['label'] ); ?></div>
 				</div>
 			</div>
 			<?php
@@ -897,15 +918,15 @@ class Admin_Page {
 			return;
 		}
 		?>
-		<span class="bucfr-rep-breakdown">
+		<span class="replacely-rep-breakdown">
 			<?php if ( $content_count > 0 ) : ?>
-				<span class="bucfr-rep-chip bucfr-rep-chip--content">
+				<span class="replacely-rep-chip replacely-rep-chip--content">
 					<span class="dashicons dashicons-media-text" aria-hidden="true"></span>
 					<?php
 					echo esc_html(
 						sprintf(
 							/* translators: %s: number of replacements made in classic post content. */
-							__( 'Content: %s', 'bulk-url-content-find-replace' ),
+							__( 'Content: %s', 'replacely' ),
 							number_format_i18n( $content_count )
 						)
 					);
@@ -913,13 +934,13 @@ class Admin_Page {
 				</span>
 			<?php endif; ?>
 			<?php if ( $elementor_count > 0 ) : ?>
-				<span class="bucfr-rep-chip bucfr-rep-chip--elementor">
+				<span class="replacely-rep-chip replacely-rep-chip--elementor">
 					<span class="dashicons dashicons-layout" aria-hidden="true"></span>
 					<?php
 					echo esc_html(
 						sprintf(
 							/* translators: %s: number of replacements made in Elementor content. */
-							__( 'Elementor: %s', 'bulk-url-content-find-replace' ),
+							__( 'Elementor: %s', 'replacely' ),
 							number_format_i18n( $elementor_count )
 						)
 					);
@@ -955,29 +976,29 @@ class Admin_Page {
 		}
 
 		$heading = $is_dry
-			? __( 'Pages that would be updated', 'bulk-url-content-find-replace' )
-			: __( 'Pages updated in this run', 'bulk-url-content-find-replace' );
+			? __( 'Pages that would be updated', 'replacely' )
+			: __( 'Pages updated in this run', 'replacely' );
 
 		$intro = $is_dry
-			? __( 'Dry run — nothing was written to the database. Disable Dry Run and re-submit to apply these changes.', 'bulk-url-content-find-replace' )
-			: __( 'These pages were modified in the database. Use View / Edit to verify each change.', 'bulk-url-content-find-replace' );
+			? __( 'Dry run — nothing was written to the database. Disable Dry Run and re-submit to apply these changes.', 'replacely' )
+			: __( 'These pages were modified in the database. Use View / Edit to verify each change.', 'replacely' );
 
 		?>
-		<div class="bucfr-updated-panel">
-			<div class="bucfr-updated-panel__head">
+		<div class="replacely-updated-panel">
+			<div class="replacely-updated-panel__head">
 				<h3>
 					<span class="dashicons dashicons-edit-page" aria-hidden="true"></span>
 					<?php echo esc_html( $heading ); ?>
-					<span class="bucfr-updated-panel__count">
+					<span class="replacely-updated-panel__count">
 						<?php echo esc_html( number_format_i18n( count( $matched ) ) ); ?>
 					</span>
 				</h3>
-				<p class="bucfr-updated-panel__intro"><?php echo esc_html( $intro ); ?></p>
+				<p class="replacely-updated-panel__intro"><?php echo esc_html( $intro ); ?></p>
 			</div>
-			<ul class="bucfr-updated-list">
+			<ul class="replacely-updated-list">
 				<?php foreach ( $matched as $row ) : ?>
 					<?php
-					$title     = ! empty( $row['post_title'] ) ? $row['post_title'] : __( '(no title)', 'bulk-url-content-find-replace' );
+					$title     = ! empty( $row['post_title'] ) ? $row['post_title'] : __( '(no title)', 'replacely' );
 					$post_id   = isset( $row['post_id'] ) ? (int) $row['post_id'] : 0;
 					$post_type = isset( $row['post_type'] ) ? $row['post_type'] : '';
 					$reps      = isset( $row['replacements'] ) ? (int) $row['replacements'] : 0;
@@ -986,25 +1007,25 @@ class Admin_Page {
 					$edit_url  = ! empty( $row['edit_link'] ) ? $row['edit_link'] : '';
 					$view_url  = ! empty( $row['view_link'] ) ? $row['view_link'] : '';
 					?>
-					<li class="bucfr-updated-item">
-						<div class="bucfr-updated-item__main">
-							<div class="bucfr-updated-item__title">
+					<li class="replacely-updated-item">
+						<div class="replacely-updated-item__main">
+							<div class="replacely-updated-item__title">
 								<span class="dashicons dashicons-<?php echo esc_attr( $is_dry ? 'visibility' : 'yes-alt' ); ?>" aria-hidden="true"></span>
 								<strong><?php echo esc_html( $title ); ?></strong>
 							</div>
-							<div class="bucfr-updated-item__meta">
+							<div class="replacely-updated-item__meta">
 								<?php if ( $post_type ) : ?>
-									<code class="bucfr-pill"><?php echo esc_html( $post_type ); ?></code>
+									<code class="replacely-pill"><?php echo esc_html( $post_type ); ?></code>
 								<?php endif; ?>
 								<?php if ( $post_id ) : ?>
-									<span><?php echo esc_html( sprintf( /* translators: %d: post ID. */ __( 'ID: %d', 'bulk-url-content-find-replace' ), $post_id ) ); ?></span>
+									<span><?php echo esc_html( sprintf( /* translators: %d: post ID. */ __( 'ID: %d', 'replacely' ), $post_id ) ); ?></span>
 								<?php endif; ?>
 								<span>
 									<?php
 									echo esc_html(
 										sprintf(
 											/* translators: %s: number of replacements. */
-											_n( '%s replacement', '%s replacements', $reps, 'bulk-url-content-find-replace' ),
+											_n( '%s replacement', '%s replacements', $reps, 'replacely' ),
 											number_format_i18n( $reps )
 										)
 									);
@@ -1012,21 +1033,21 @@ class Admin_Page {
 								</span>
 								<?php $this->render_replacement_breakdown( $content_reps, $elementor_reps ); ?>
 								<?php if ( ! empty( $row['resolved_url'] ) ) : ?>
-									<code class="bucfr-updated-item__url"><?php echo esc_html( $row['resolved_url'] ); ?></code>
+									<code class="replacely-updated-item__url"><?php echo esc_html( $row['resolved_url'] ); ?></code>
 								<?php endif; ?>
 							</div>
 						</div>
-						<div class="bucfr-updated-item__actions">
+						<div class="replacely-updated-item__actions">
 							<?php if ( $view_url ) : ?>
 								<a class="button button-secondary" href="<?php echo esc_url( $view_url ); ?>" target="_blank" rel="noopener noreferrer">
 									<span class="dashicons dashicons-visibility" aria-hidden="true"></span>
-									<?php esc_html_e( 'View', 'bulk-url-content-find-replace' ); ?>
+									<?php esc_html_e( 'View', 'replacely' ); ?>
 								</a>
 							<?php endif; ?>
 							<?php if ( $edit_url ) : ?>
 								<a class="button button-primary" href="<?php echo esc_url( $edit_url ); ?>" target="_blank" rel="noopener noreferrer">
 									<span class="dashicons dashicons-edit" aria-hidden="true"></span>
-									<?php esc_html_e( 'Edit', 'bulk-url-content-find-replace' ); ?>
+									<?php esc_html_e( 'Edit', 'replacely' ); ?>
 								</a>
 							<?php endif; ?>
 						</div>
@@ -1051,59 +1072,59 @@ class Admin_Page {
 
 		$clear_url = wp_nonce_url(
 			add_query_arg(
-				array( 'action' => 'bucfr_clear_log' ),
+				array( 'action' => 'replacely_clear_log' ),
 				admin_url( 'admin-post.php' )
 			),
-			'bucfr_clear_log'
+			'replacely_clear_log'
 		);
 
 		$date_format = get_option( 'date_format' ) . ' ' . get_option( 'time_format' );
 		?>
-		<section class="bucfr-card bucfr-log" id="bucfr-activity-log">
-			<div class="bucfr-card__head bucfr-log__head">
+		<section class="replacely-card replacely-log" id="replacely-activity-log">
+			<div class="replacely-card__head replacely-log__head">
 				<h2>
 					<span class="dashicons dashicons-media-document" aria-hidden="true"></span>
-					<?php esc_html_e( 'Activity Log — Recently Updated Pages', 'bulk-url-content-find-replace' ); ?>
+					<?php esc_html_e( 'Activity Log — Recently Updated Pages', 'replacely' ); ?>
 					<?php if ( ! empty( $entries ) ) : ?>
-						<span class="bucfr-log__count">
+						<span class="replacely-log__count">
 							<?php echo esc_html( number_format_i18n( count( $entries ) ) ); ?>
 						</span>
 					<?php endif; ?>
 				</h2>
 				<?php if ( ! empty( $entries ) ) : ?>
 					<a
-						class="button button-link-delete bucfr-log__clear"
+						class="button button-link-delete replacely-log__clear"
 						href="<?php echo esc_url( $clear_url ); ?>"
-						onclick="return confirm('<?php echo esc_js( __( 'Clear the activity log? This only deletes the log itself, not the post changes.', 'bulk-url-content-find-replace' ) ); ?>');"
+						onclick="return confirm('<?php echo esc_js( __( 'Clear the activity log? This only deletes the log itself, not the post changes.', 'replacely' ) ); ?>');"
 					>
 						<span class="dashicons dashicons-trash" aria-hidden="true"></span>
-						<?php esc_html_e( 'Clear log', 'bulk-url-content-find-replace' ); ?>
+						<?php esc_html_e( 'Clear log', 'replacely' ); ?>
 					</a>
 				<?php endif; ?>
 			</div>
 
 			<?php if ( empty( $entries ) ) : ?>
-				<div class="bucfr-empty">
+				<div class="replacely-empty">
 					<span class="dashicons dashicons-archive" aria-hidden="true"></span>
-					<p><?php esc_html_e( 'No pages have been updated yet. Run a live replacement to start the log.', 'bulk-url-content-find-replace' ); ?></p>
+					<p><?php esc_html_e( 'No pages have been updated yet. Run a live replacement to start the log.', 'replacely' ); ?></p>
 				</div>
 			<?php else : ?>
-				<div class="bucfr-table-wrap">
-					<table class="widefat striped bucfr-table bucfr-log__table">
+				<div class="replacely-table-wrap">
+					<table class="widefat striped replacely-table replacely-log__table">
 						<thead>
 							<tr>
-								<th scope="col"><?php esc_html_e( 'When', 'bulk-url-content-find-replace' ); ?></th>
-								<th scope="col"><?php esc_html_e( 'Page', 'bulk-url-content-find-replace' ); ?></th>
-								<th scope="col"><?php esc_html_e( 'Type', 'bulk-url-content-find-replace' ); ?></th>
-								<th scope="col" class="bucfr-num"><?php esc_html_e( 'Replacements', 'bulk-url-content-find-replace' ); ?></th>
-								<th scope="col"><?php esc_html_e( 'By', 'bulk-url-content-find-replace' ); ?></th>
-								<th scope="col" class="bucfr-log__actions-col"><?php esc_html_e( 'Actions', 'bulk-url-content-find-replace' ); ?></th>
+								<th scope="col"><?php esc_html_e( 'When', 'replacely' ); ?></th>
+								<th scope="col"><?php esc_html_e( 'Page', 'replacely' ); ?></th>
+								<th scope="col"><?php esc_html_e( 'Type', 'replacely' ); ?></th>
+								<th scope="col" class="replacely-num"><?php esc_html_e( 'Replacements', 'replacely' ); ?></th>
+								<th scope="col"><?php esc_html_e( 'By', 'replacely' ); ?></th>
+								<th scope="col" class="replacely-log__actions-col"><?php esc_html_e( 'Actions', 'replacely' ); ?></th>
 							</tr>
 						</thead>
 						<tbody>
 							<?php foreach ( $entries as $entry ) : ?>
 								<?php
-								$title     = ! empty( $entry['post_title'] ) ? $entry['post_title'] : __( '(no title)', 'bulk-url-content-find-replace' );
+								$title     = ! empty( $entry['post_title'] ) ? $entry['post_title'] : __( '(no title)', 'replacely' );
 								$when      = ! empty( $entry['timestamp'] ) ? mysql2date( $date_format, $entry['timestamp'] ) : '';
 								$post_id   = isset( $entry['post_id'] ) ? (int) $entry['post_id'] : 0;
 								$post_type = isset( $entry['post_type'] ) ? $entry['post_type'] : '';
@@ -1112,17 +1133,17 @@ class Admin_Page {
 								$elementor_reps = isset( $entry['elementor_replacements'] ) ? (int) $entry['elementor_replacements'] : 0;
 								$edit_url  = ! empty( $entry['edit_link'] ) ? $entry['edit_link'] : '';
 								$view_url  = ! empty( $entry['view_link'] ) ? $entry['view_link'] : '';
-								$user_name = ! empty( $entry['user_name'] ) ? $entry['user_name'] : __( '—', 'bulk-url-content-find-replace' );
+								$user_name = ! empty( $entry['user_name'] ) ? $entry['user_name'] : __( '—', 'replacely' );
 								?>
 								<tr>
 									<td>
-										<span class="bucfr-log__when"><?php echo esc_html( $when ); ?></span>
+										<span class="replacely-log__when"><?php echo esc_html( $when ); ?></span>
 									</td>
 									<td>
 										<strong><?php echo esc_html( $title ); ?></strong>
-										<div class="bucfr-cell-post__meta">
+										<div class="replacely-cell-post__meta">
 											<?php if ( $post_id ) : ?>
-												<span><?php echo esc_html( sprintf( /* translators: %d: post ID. */ __( 'ID: %d', 'bulk-url-content-find-replace' ), $post_id ) ); ?></span>
+												<span><?php echo esc_html( sprintf( /* translators: %d: post ID. */ __( 'ID: %d', 'replacely' ), $post_id ) ); ?></span>
 											<?php endif; ?>
 											<?php if ( ! empty( $entry['resolved_url'] ) ) : ?>
 												<code><?php echo esc_html( $entry['resolved_url'] ); ?></code>
@@ -1131,27 +1152,27 @@ class Admin_Page {
 									</td>
 									<td>
 										<?php if ( $post_type ) : ?>
-											<code class="bucfr-pill"><?php echo esc_html( $post_type ); ?></code>
+											<code class="replacely-pill"><?php echo esc_html( $post_type ); ?></code>
 										<?php else : ?>
-											<span class="bucfr-muted">—</span>
+											<span class="replacely-muted">—</span>
 										<?php endif; ?>
 									</td>
-									<td class="bucfr-num">
+									<td class="replacely-num">
 										<?php echo esc_html( number_format_i18n( $reps ) ); ?>
 										<?php $this->render_replacement_breakdown( $content_reps, $elementor_reps ); ?>
 									</td>
 									<td><?php echo esc_html( $user_name ); ?></td>
-									<td class="bucfr-log__actions">
+									<td class="replacely-log__actions">
 										<?php if ( $view_url ) : ?>
 											<a class="button button-small" href="<?php echo esc_url( $view_url ); ?>" target="_blank" rel="noopener noreferrer">
 												<span class="dashicons dashicons-visibility" aria-hidden="true"></span>
-												<?php esc_html_e( 'View', 'bulk-url-content-find-replace' ); ?>
+												<?php esc_html_e( 'View', 'replacely' ); ?>
 											</a>
 										<?php endif; ?>
 										<?php if ( $edit_url ) : ?>
 											<a class="button button-small button-primary" href="<?php echo esc_url( $edit_url ); ?>" target="_blank" rel="noopener noreferrer">
 												<span class="dashicons dashicons-edit" aria-hidden="true"></span>
-												<?php esc_html_e( 'Edit', 'bulk-url-content-find-replace' ); ?>
+												<?php esc_html_e( 'Edit', 'replacely' ); ?>
 											</a>
 										<?php endif; ?>
 									</td>
@@ -1160,13 +1181,13 @@ class Admin_Page {
 						</tbody>
 					</table>
 				</div>
-				<p class="bucfr-log__footnote">
+				<p class="replacely-log__footnote">
 					<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
 					<?php
 					echo esc_html(
 						sprintf(
 							/* translators: %d: log cap. */
-							__( 'The log keeps the %d most recent updates. Older entries are pruned automatically.', 'bulk-url-content-find-replace' ),
+							__( 'The log keeps the %d most recent updates. Older entries are pruned automatically.', 'replacely' ),
 							(int) Helper::LOG_LIMIT
 						)
 					);
@@ -1186,25 +1207,25 @@ class Admin_Page {
 	private function render_results_table( array $rows ) {
 		if ( empty( $rows ) ) {
 			?>
-			<div class="bucfr-empty">
+			<div class="replacely-empty">
 				<span class="dashicons dashicons-info-outline" aria-hidden="true"></span>
-				<p><?php esc_html_e( 'No rows to display.', 'bulk-url-content-find-replace' ); ?></p>
+				<p><?php esc_html_e( 'No rows to display.', 'replacely' ); ?></p>
 			</div>
 			<?php
 			return;
 		}
 		?>
-		<div class="bucfr-table-wrap">
-			<table class="widefat striped bucfr-table" id="bucfr-results-table">
+		<div class="replacely-table-wrap">
+			<table class="widefat striped replacely-table" id="replacely-results-table">
 				<thead>
 					<tr>
-						<th scope="col"><?php esc_html_e( '#', 'bulk-url-content-find-replace' ); ?></th>
-						<th scope="col"><?php esc_html_e( 'URL / Path', 'bulk-url-content-find-replace' ); ?></th>
-						<th scope="col"><?php esc_html_e( 'Post', 'bulk-url-content-find-replace' ); ?></th>
-						<th scope="col"><?php esc_html_e( 'Type', 'bulk-url-content-find-replace' ); ?></th>
-						<th scope="col"><?php esc_html_e( 'Status', 'bulk-url-content-find-replace' ); ?></th>
-						<th scope="col" class="bucfr-num"><?php esc_html_e( 'Replacements', 'bulk-url-content-find-replace' ); ?></th>
-						<th scope="col"><?php esc_html_e( 'Message', 'bulk-url-content-find-replace' ); ?></th>
+						<th scope="col"><?php esc_html_e( '#', 'replacely' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'URL / Path', 'replacely' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Post', 'replacely' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Type', 'replacely' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Status', 'replacely' ); ?></th>
+						<th scope="col" class="replacely-num"><?php esc_html_e( 'Replacements', 'replacely' ); ?></th>
+						<th scope="col"><?php esc_html_e( 'Message', 'replacely' ); ?></th>
 					</tr>
 				</thead>
 				<tbody>
@@ -1218,14 +1239,14 @@ class Admin_Page {
 						$view_url = ! empty( $row['view_link'] ) ? $row['view_link'] : '';
 						$title    = isset( $row['post_title'] ) && '' !== $row['post_title']
 							? $row['post_title']
-							: __( '—', 'bulk-url-content-find-replace' );
+							: __( '—', 'replacely' );
 						?>
-						<tr class="bucfr-row bucfr-row--<?php echo esc_attr( $tone ); ?>">
-							<td class="bucfr-num"><?php echo esc_html( number_format_i18n( $index + 1 ) ); ?></td>
-							<td class="bucfr-cell-url">
-								<code class="bucfr-code"><?php echo esc_html( isset( $row['input'] ) ? $row['input'] : '' ); ?></code>
+						<tr class="replacely-row replacely-row--<?php echo esc_attr( $tone ); ?>">
+							<td class="replacely-num"><?php echo esc_html( number_format_i18n( $index + 1 ) ); ?></td>
+							<td class="replacely-cell-url">
+								<code class="replacely-code"><?php echo esc_html( isset( $row['input'] ) ? $row['input'] : '' ); ?></code>
 								<?php if ( ! empty( $row['resolved_url'] ) && $row['resolved_url'] !== ( isset( $row['input'] ) ? $row['input'] : '' ) ) : ?>
-									<div class="bucfr-cell-url__resolved">
+									<div class="replacely-cell-url__resolved">
 										<span class="dashicons dashicons-arrow-right-alt" aria-hidden="true"></span>
 										<code><?php echo esc_html( $row['resolved_url'] ); ?></code>
 									</div>
@@ -1233,40 +1254,40 @@ class Admin_Page {
 							</td>
 							<td>
 								<?php if ( $post_id > 0 ) : ?>
-									<div class="bucfr-cell-post">
+									<div class="replacely-cell-post">
 										<strong><?php echo esc_html( $title ); ?></strong>
-										<div class="bucfr-cell-post__meta">
-											<span><?php echo esc_html( sprintf( /* translators: %d: post ID. */ __( 'ID: %d', 'bulk-url-content-find-replace' ), $post_id ) ); ?></span>
+										<div class="replacely-cell-post__meta">
+											<span><?php echo esc_html( sprintf( /* translators: %d: post ID. */ __( 'ID: %d', 'replacely' ), $post_id ) ); ?></span>
 											<?php if ( $edit_url ) : ?>
 												<a href="<?php echo esc_url( $edit_url ); ?>" target="_blank" rel="noopener noreferrer">
-													<?php esc_html_e( 'Edit', 'bulk-url-content-find-replace' ); ?>
+													<?php esc_html_e( 'Edit', 'replacely' ); ?>
 												</a>
 											<?php endif; ?>
 											<?php if ( $view_url ) : ?>
 												<a href="<?php echo esc_url( $view_url ); ?>" target="_blank" rel="noopener noreferrer">
-													<?php esc_html_e( 'View', 'bulk-url-content-find-replace' ); ?>
+													<?php esc_html_e( 'View', 'replacely' ); ?>
 												</a>
 											<?php endif; ?>
 										</div>
 									</div>
 								<?php else : ?>
-									<span class="bucfr-muted">—</span>
+									<span class="replacely-muted">—</span>
 								<?php endif; ?>
 							</td>
 							<td>
 								<?php if ( ! empty( $row['post_type'] ) ) : ?>
-									<code class="bucfr-pill"><?php echo esc_html( $row['post_type'] ); ?></code>
+									<code class="replacely-pill"><?php echo esc_html( $row['post_type'] ); ?></code>
 								<?php else : ?>
-									<span class="bucfr-muted">—</span>
+									<span class="replacely-muted">—</span>
 								<?php endif; ?>
 							</td>
 							<td>
-								<span class="bucfr-status bucfr-status--<?php echo esc_attr( $tone ); ?>">
+								<span class="replacely-status replacely-status--<?php echo esc_attr( $tone ); ?>">
 									<span class="dashicons dashicons-<?php echo esc_attr( $icon ); ?>" aria-hidden="true"></span>
 									<?php echo esc_html( Helper::status_label( $status ) ); ?>
 								</span>
 							</td>
-							<td class="bucfr-num">
+							<td class="replacely-num">
 								<?php echo esc_html( number_format_i18n( isset( $row['replacements'] ) ? (int) $row['replacements'] : 0 ) ); ?>
 								<?php
 								$this->render_replacement_breakdown(
@@ -1275,7 +1296,7 @@ class Admin_Page {
 								);
 								?>
 							</td>
-							<td class="bucfr-cell-message">
+							<td class="replacely-cell-message">
 								<?php echo esc_html( isset( $row['message'] ) ? $row['message'] : '' ); ?>
 							</td>
 						</tr>

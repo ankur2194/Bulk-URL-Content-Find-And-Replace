@@ -2,10 +2,10 @@
 /**
  * Generic helper utilities shared across the plugin.
  *
- * @package BulkUrlContentFindReplace
+ * @package Replacely
  */
 
-namespace BUCFR;
+namespace Replacely;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -24,22 +24,22 @@ class Helper {
 	/**
 	 * Nonce action identifier.
 	 */
-	const NONCE_ACTION = 'bucfr_run_replacement';
+	const NONCE_ACTION = 'replacely_run_replacement';
 
 	/**
 	 * Nonce request field name.
 	 */
-	const NONCE_FIELD = 'bucfr_nonce';
+	const NONCE_FIELD = 'replacely_nonce';
 
 	/**
 	 * Admin page slug.
 	 */
-	const PAGE_SLUG = 'bulk-url-content-find-replace';
+	const PAGE_SLUG = 'replacely';
 
 	/**
 	 * Option key for the persistent activity log.
 	 */
-	const LOG_OPTION = 'bucfr_activity_log';
+	const LOG_OPTION = 'replacely_activity_log';
 
 	/**
 	 * Maximum number of entries kept in the activity log.
@@ -174,7 +174,7 @@ class Helper {
 		if ( $seconds < 1 ) {
 			return sprintf(
 				/* translators: %s: milliseconds */
-				__( '%s ms', 'bulk-url-content-find-replace' ),
+				__( '%s ms', 'replacely' ),
 				number_format_i18n( $seconds * 1000, 0 )
 			);
 		}
@@ -182,7 +182,7 @@ class Helper {
 		if ( $seconds < 60 ) {
 			return sprintf(
 				/* translators: %s: seconds */
-				__( '%s s', 'bulk-url-content-find-replace' ),
+				__( '%s s', 'replacely' ),
 				number_format_i18n( $seconds, 2 )
 			);
 		}
@@ -192,7 +192,7 @@ class Helper {
 
 		return sprintf(
 			/* translators: 1: minutes, 2: seconds */
-			__( '%1$d min %2$s s', 'bulk-url-content-find-replace' ),
+			__( '%1$d min %2$s s', 'replacely' ),
 			(int) $minutes,
 			number_format_i18n( $rest, 1 )
 		);
@@ -206,14 +206,14 @@ class Helper {
 	 */
 	public static function status_label( $status ) {
 		$labels = array(
-			'updated'        => __( 'Updated', 'bulk-url-content-find-replace' ),
-			'preview'        => __( 'Preview', 'bulk-url-content-find-replace' ),
-			'no_match'       => __( 'No match', 'bulk-url-content-find-replace' ),
-			'invalid_url'    => __( 'Invalid URL', 'bulk-url-content-find-replace' ),
-			'skipped'        => __( 'Skipped', 'bulk-url-content-find-replace' ),
-			'failed'         => __( 'Failed', 'bulk-url-content-find-replace' ),
-			'duplicate'      => __( 'Duplicate', 'bulk-url-content-find-replace' ),
-			'not_supported'  => __( 'Unsupported', 'bulk-url-content-find-replace' ),
+			'updated'        => __( 'Updated', 'replacely' ),
+			'preview'        => __( 'Preview', 'replacely' ),
+			'no_match'       => __( 'No match', 'replacely' ),
+			'invalid_url'    => __( 'Invalid URL', 'replacely' ),
+			'skipped'        => __( 'Skipped', 'replacely' ),
+			'failed'         => __( 'Failed', 'replacely' ),
+			'duplicate'      => __( 'Duplicate', 'replacely' ),
+			'not_supported'  => __( 'Unsupported', 'replacely' ),
 		);
 
 		return isset( $labels[ $status ] ) ? $labels[ $status ] : ucfirst( str_replace( '_', ' ', $status ) );

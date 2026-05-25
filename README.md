@@ -1,17 +1,17 @@
-# Bulk URL Content Find & Replace
+# Replacely – Bulk Content Find & Replace by URLs
 
-> A premium WordPress administration tool for safely performing **bulk find and replace** on post, page, and custom-post-type content — including pages built with Elementor — across a curated list of URLs or paths, with a dry-run preview, a polished results dashboard, CSV export, and a persistent activity log.
+> A WordPress administration tool for safely performing **bulk find and replace** on post, page, and custom-post-type content — including pages built with Elementor — across a curated list of URLs or paths, with a dry-run preview, a polished results dashboard, CSV export, and a persistent activity log.
 
 [![WordPress](https://img.shields.io/badge/WordPress-5.6%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.2%2B-purple.svg)](https://www.php.net/)
 [![License: GPL v2+](https://img.shields.io/badge/License-GPL%20v2%2B-green.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
-[![Version](https://img.shields.io/badge/version-1.0.3-orange.svg)](#changelog)
+[![Version](https://img.shields.io/badge/version-1.0.4-orange.svg)](#changelog)
 
 ---
 
 ## Overview
 
-Most "search & replace" tools scan the entire WordPress database blindly, which is risky on production sites. **Bulk URL Content Find & Replace** takes the opposite approach: you provide an explicit list of URLs or paths, the exact text to find, and the exact text to replace it with. Only the content of those specific posts is touched — nothing else.
+Most "search & replace" tools scan the entire WordPress database blindly, which is risky on production sites. **Replacely** takes the opposite approach: you provide an explicit list of URLs or paths, the exact text to find, and the exact text to replace it with. Only the content of those specific posts is touched — nothing else.
 
 It is built for site owners, agencies, and developers who need surgical, predictable content edits across many pages at once.
 
@@ -23,13 +23,13 @@ It is built for site owners, agencies, and developers who need surgical, predict
 - **Any post type** — Detects target posts via `url_to_postid()`, so it works with posts, pages, and any registered CPT (including those from other plugins or themes).
 - **Elementor-aware** — Also finds and replaces text inside Elementor page content stored in `_elementor_data`, then refreshes Elementor's CSS cache so the changes appear on the front end right away.
 - **Dry Run mode** — Preview the exact number of replacements per URL *before* writing anything to the database.
-- **Premium results dashboard** — Summary tiles, status colors, dashicons, and a detailed per-URL table, with replacement counts broken down by source (classic content vs. Elementor).
+- **Results dashboard** — Summary tiles, status colors, dashicons, and a detailed per-URL table, with replacement counts broken down by source (classic content vs. Elementor).
 - **CSV export & Copy to clipboard** — Share or archive results in one click.
 - **Persistent activity log** — Every live replacement is recorded on-screen: which page changed, when, by whom, how many replacements, with View/Edit links. Keeps the 200 most recent updates and can be cleared at any time. Dry-run previews are never logged.
 - **Safety first** — Skips revisions, auto-drafts, and trashed posts. Duplicate URLs are deduplicated.
 - **Clean uninstall** — Deleting the plugin removes all of its data from the database (activity-log option and per-user transients), multisite-aware. Your content changes are kept.
 - **Hardened security** — Capability checks, nonces, input sanitisation, output escaping, and direct-access protection throughout.
-- **Translation-ready** — Loaded with text domain `bulk-url-content-find-replace`.
+- **Translation-ready** — Loaded with text domain `replacely`.
 
 ## Requirements
 
@@ -37,7 +37,7 @@ It is built for site owners, agencies, and developers who need surgical, predict
 | ----------- | ------- |
 | WordPress   | 5.6     |
 | PHP         | 7.2     |
-| Tested up to (WP) | 6.5 |
+| Tested up to (WP) | 7.0 |
 | User capability   | `manage_options` |
 
 ## Installation
@@ -53,13 +53,13 @@ It is built for site owners, agencies, and developers who need surgical, predict
 1. Clone or download this repository into your `/wp-content/plugins/` directory:
    ```bash
    cd wp-content/plugins
-   git clone https://github.com/<your-username>/bulk-url-content-find-replace.git
+   git clone https://github.com/<your-username>/replacely.git
    ```
-2. Activate **Bulk URL Content Find & Replace** from the **Plugins** screen in WordPress.
+2. Activate **Replacely** from the **Plugins** screen in WordPress.
 
 ## Usage
 
-1. Navigate to **Tools → Bulk URL Content Find & Replace** in the WordPress admin.
+1. Navigate to **Tools → Replacely** in the WordPress admin.
 2. Fill in the configuration card:
    - **Search text** — the exact string to find (case-sensitive).
    - **Replace text** — the exact string to put in its place.
@@ -88,8 +88,8 @@ It is built for site owners, agencies, and developers who need surgical, predict
 ## Project Structure
 
 ```
-bulk-url-content-find-replace/
-├── bulk-url-content-find-replace.php   # Plugin bootstrap, constants, activation hook
+replacely/
+├── replacely.php                       # Plugin bootstrap, constants, activation hook
 ├── uninstall.php                       # Removes all plugin data on deletion (multisite-aware)
 ├── readme.txt                          # WordPress.org-format readme
 ├── README.md                           # This file
@@ -103,7 +103,7 @@ bulk-url-content-find-replace/
     └── class-helper.php                # URL normalisation & shared utilities
 ```
 
-The codebase uses an object-oriented, namespaced architecture (`BUCFR\…`) with a clean separation between bootstrap, plugin container, admin UI, replacer service, and helper utilities.
+The codebase uses an object-oriented, namespaced architecture (`Replacely\…`) with a clean separation between bootstrap, plugin container, admin UI, replacer service, and helper utilities.
 
 ## FAQ
 
@@ -138,6 +138,10 @@ No. It is stored in a single non-autoloaded option that is hard-capped at 200 en
 The plugin cleans up after itself. Deleting it from the **Plugins** screen removes everything it stored in the database — the activity-log option and every per-user results/state transient (on multisite, the cleanup runs for each site in the network). The actual content changes made to your posts are intentionally left in place, since those are real edits to your site, not plugin data.
 
 ## Changelog
+
+### 1.0.4
+- Renamed the plugin to **Replacely – Bulk Content Find & Replace by URLs** and standardized internal prefixes, namespace, and admin asset identifiers (no user-facing functional change).
+- Hardened the CSV export against spreadsheet formula injection.
 
 ### 1.0.3
 - Added a per-source replacement breakdown: results and the activity log now show how many replacements came from classic post content vs. Elementor content (visible in the summary tiles, results table, "pages updated" panel, activity log, and CSV export).

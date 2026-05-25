@@ -1,5 +1,5 @@
 /**
- * Bulk URL Content Find & Replace — admin enhancements.
+ * Replacely — admin enhancements.
  *
  * Progressive enhancement only: every interaction here has a server-side
  * equivalent so the plugin remains fully functional without JavaScript.
@@ -7,13 +7,13 @@
 (function ($) {
 	'use strict';
 
-	var i18n = window.BUCFR_I18N || {};
+	var i18n = window.REPLACELY_I18N || {};
 
 	function initCounters() {
-		// Character counters (data-bucfr-counter -> element id of the counter).
-		$('[data-bucfr-counter]').each(function () {
+		// Character counters (data-replacely-counter -> element id of the counter).
+		$('[data-replacely-counter]').each(function () {
 			var $field   = $(this);
-			var counter  = $field.data('bucfr-counter');
+			var counter  = $field.data('replacely-counter');
 			var $counter = $('#' + counter);
 			if (!$counter.length) {
 				return;
@@ -30,9 +30,9 @@
 		});
 
 		// Line counters for the URLs field.
-		$('[data-bucfr-lines]').each(function () {
+		$('[data-replacely-lines]').each(function () {
 			var $field   = $(this);
-			var counter  = $field.data('bucfr-lines');
+			var counter  = $field.data('replacely-lines');
 			var $counter = $('#' + counter);
 			if (!$counter.length) {
 				return;
@@ -57,10 +57,10 @@
 	}
 
 	function initSubmit() {
-		var $form    = $('#bucfr-form');
-		var $submit  = $('#bucfr-submit');
-		var $dryRun  = $('#bucfr_dry_run');
-		var $label   = $submit.find('.bucfr-submit__label');
+		var $form    = $('#replacely-form');
+		var $submit  = $('#replacely-submit');
+		var $dryRun  = $('#replacely_dry_run');
+		var $label   = $submit.find('.replacely-submit__label');
 
 		if (!$form.length || !$submit.length) {
 			return;
@@ -97,11 +97,11 @@
 	}
 
 	function initCopyResults() {
-		$(document).on('click', '[data-bucfr-copy]', function (event) {
+		$(document).on('click', '[data-replacely-copy]', function (event) {
 			event.preventDefault();
 			var $btn    = $(this);
-			var $table  = $('#bucfr-results-table');
-			var $status = $('.bucfr-results__status').first();
+			var $table  = $('#replacely-results-table');
+			var $status = $('.replacely-results__status').first();
 
 			if (!$table.length) {
 				return;

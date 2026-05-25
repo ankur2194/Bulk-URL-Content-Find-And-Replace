@@ -2,10 +2,10 @@
 /**
  * Core replacement engine.
  *
- * @package BulkUrlContentFindReplace
+ * @package Replacely
  */
 
-namespace BUCFR;
+namespace Replacely;
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
@@ -139,7 +139,7 @@ class Replacer {
 		$normalized = Helper::normalize_to_url( $line );
 		if ( null === $normalized ) {
 			$row['status']  = 'invalid_url';
-			$row['message'] = __( 'Could not parse this line as a URL or path.', 'bulk-url-content-find-replace' );
+			$row['message'] = __( 'Could not parse this line as a URL or path.', 'replacely' );
 			$summary['invalid']++;
 			return $row;
 		}
@@ -149,7 +149,7 @@ class Replacer {
 		$post_id = url_to_postid( $normalized );
 		if ( ! $post_id ) {
 			$row['status']  = 'invalid_url';
-			$row['message'] = __( 'No matching post, page, or CPT was found for this URL.', 'bulk-url-content-find-replace' );
+			$row['message'] = __( 'No matching post, page, or CPT was found for this URL.', 'replacely' );
 			$summary['invalid']++;
 			return $row;
 		}
@@ -157,7 +157,7 @@ class Replacer {
 		if ( in_array( (int) $post_id, $seen_post_ids, true ) ) {
 			$row['post_id']     = (int) $post_id;
 			$row['status']      = 'duplicate';
-			$row['message']     = __( 'This post was already processed earlier in the list.', 'bulk-url-content-find-replace' );
+			$row['message']     = __( 'This post was already processed earlier in the list.', 'replacely' );
 			$post              = get_post( $post_id );
 			if ( $post ) {
 				$row['post_type']  = $post->post_type;
@@ -170,7 +170,7 @@ class Replacer {
 		$post = get_post( $post_id );
 		if ( ! ( $post instanceof \WP_Post ) ) {
 			$row['status']  = 'failed';
-			$row['message'] = __( 'Post could not be loaded.', 'bulk-url-content-find-replace' );
+			$row['message'] = __( 'Post could not be loaded.', 'replacely' );
 			$summary['failed']++;
 			return $row;
 		}
@@ -183,7 +183,7 @@ class Replacer {
 			$row['status']     = 'skipped';
 			$row['message']    = sprintf(
 				/* translators: %s: post status. */
-				__( 'Post status "%s" is not eligible for editing.', 'bulk-url-content-find-replace' ),
+				__( 'Post status "%s" is not eligible for editing.', 'replacely' ),
 				$post->post_status
 			);
 			$summary['skipped']++;
@@ -195,7 +195,7 @@ class Replacer {
 			$row['post_type']  = $post->post_type;
 			$row['post_title'] = $post->post_title;
 			$row['status']     = 'skipped';
-			$row['message']    = __( 'Revisions are not edited directly.', 'bulk-url-content-find-replace' );
+			$row['message']    = __( 'Revisions are not edited directly.', 'replacely' );
 			$summary['skipped']++;
 			return $row;
 		}
@@ -206,14 +206,14 @@ class Replacer {
 			$row['post_type']  = $post->post_type;
 			$row['post_title'] = $post->post_title;
 			$row['status']     = 'not_supported';
-			$row['message']    = __( 'You do not have permission to edit this post.', 'bulk-url-content-find-replace' );
+			$row['message']    = __( 'You do not have permission to edit this post.', 'replacely' );
 			$summary['failed']++;
 			return $row;
 		}
 
 		$row['post_id']    = (int) $post->ID;
 		$row['post_type']  = $post->post_type;
-		$row['post_title'] = '' !== $post->post_title ? $post->post_title : __( '(no title)', 'bulk-url-content-find-replace' );
+		$row['post_title'] = '' !== $post->post_title ? $post->post_title : __( '(no title)', 'replacely' );
 		$row['edit_link']  = (string) get_edit_post_link( $post->ID, 'raw' );
 		$row['view_link']  = (string) get_permalink( $post->ID );
 
@@ -246,7 +246,7 @@ class Replacer {
 		// writing a corrupt (empty) value to _elementor_data.
 		if ( $elementor_count > 0 && ! is_string( $new_elementor ) ) {
 			$row['status']   = 'failed';
-			$row['message']  = __( 'Elementor data could not be safely re-encoded; this post was left unchanged.', 'bulk-url-content-find-replace' );
+			$row['message']  = __( 'Elementor data could not be safely re-encoded; this post was left unchanged.', 'replacely' );
 			$summary['failed']++;
 			$seen_post_ids[] = (int) $post->ID;
 			return $row;
@@ -256,7 +256,7 @@ class Replacer {
 
 		if ( 0 === $count ) {
 			$row['status']  = 'no_match';
-			$row['message'] = __( 'The search text was not found in this post.', 'bulk-url-content-find-replace' );
+			$row['message'] = __( 'The search text was not found in this post.', 'replacely' );
 			$summary['no_match']++;
 			$seen_post_ids[] = (int) $post->ID;
 			return $row;
@@ -277,7 +277,7 @@ class Replacer {
 					'%d replacement would be made (dry run).',
 					'%d replacements would be made (dry run).',
 					$count,
-					'bulk-url-content-find-replace'
+					'replacely'
 				),
 				$count
 			);
@@ -330,7 +330,7 @@ class Replacer {
 		// Defence in depth: if for some reason nothing actually changed, report it.
 		if ( ! $something_changed ) {
 			$row['status']  = 'no_match';
-			$row['message'] = __( 'Content did not change after replacement.', 'bulk-url-content-find-replace' );
+			$row['message'] = __( 'Content did not change after replacement.', 'replacely' );
 			$summary['no_match']++;
 			$seen_post_ids[] = (int) $post->ID;
 			return $row;
@@ -343,7 +343,7 @@ class Replacer {
 				'%d replacement made successfully.',
 				'%d replacements made successfully.',
 				$count,
-				'bulk-url-content-find-replace'
+				'replacely'
 			),
 			$count
 		);

@@ -1,9 +1,9 @@
 # Copyright (C) 2026 Ankur Patel
-# This file is distributed under the same license as the Bulk URL Content Find & Replace plugin.
+# This file is distributed under the same license as the Replacely plugin.
 msgid ""
 msgstr ""
-"Project-Id-Version: Bulk URL Content Find & Replace 1.0.3\n"
-"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/bulk-url-content-find-replace\n"
+"Project-Id-Version: Replacely 1.0.4\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/replacely\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "MIME-Version: 1.0\n"
@@ -11,19 +11,19 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "POT-Creation-Date: 2026-05-24 18:34:45+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
-"X-Generator: bucfr-pot-extractor 1.0\n"
-"X-Domain: bulk-url-content-find-replace\n"
+"X-Generator: replacely-pot-extractor 1.0\n"
+"X-Domain: replacely\n"
 
-#: bulk-url-content-find-replace.php:63
-msgid "Bulk URL Content Find & Replace requires PHP 7.2 or higher. Please upgrade PHP before activating this plugin."
+#: replacely.php:63
+msgid "Replacely requires PHP 7.2 or higher. Please upgrade PHP before activating this plugin."
 msgstr ""
 
-#: bulk-url-content-find-replace.php:64 bulk-url-content-find-replace.php:74
+#: replacely.php:64 replacely.php:74
 msgid "Plugin activation failed"
 msgstr ""
 
-#: bulk-url-content-find-replace.php:73
-msgid "Bulk URL Content Find & Replace requires WordPress 5.6 or higher."
+#: replacely.php:73
+msgid "Replacely requires WordPress 5.6 or higher."
 msgstr ""
 
 #: includes/class-admin-page.php:1000 includes/class-admin-page.php:1125 includes/class-admin-page.php:1239
@@ -192,8 +192,8 @@ msgstr ""
 msgid "Message"
 msgstr ""
 
-#: includes/class-admin-page.php:452
-msgid "Bulk URL Content Find &amp; Replace"
+#: includes/class-admin-page.php:69 includes/class-admin-page.php:70 includes/class-admin-page.php:452
+msgid "Replacely"
 msgstr ""
 
 #: includes/class-admin-page.php:454
@@ -298,10 +298,6 @@ msgstr ""
 
 #: includes/class-admin-page.php:683
 msgid "Review the results dashboard and export a CSV for your records."
-msgstr ""
-
-#: includes/class-admin-page.php:69 includes/class-admin-page.php:70
-msgid "Bulk URL Content Find & Replace"
 msgstr ""
 
 #: includes/class-admin-page.php:692

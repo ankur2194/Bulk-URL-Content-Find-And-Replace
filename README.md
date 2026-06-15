@@ -31,6 +31,21 @@ It is built for site owners, agencies, and developers who need surgical, predict
 - **Hardened security** — Capability checks, nonces, input sanitisation, output escaping, and direct-access protection throughout.
 - **Translation-ready** — Loaded with text domain `replacely`.
 
+## Supported page builders
+
+Replacely fully supports any editor or page builder that stores its content in the standard WordPress `post_content`, plus Elementor, which keeps its content in dedicated post meta:
+
+| Editor / page builder | Where content is stored | Supported |
+| --------------------- | ----------------------- | --------- |
+| **Block Editor (Gutenberg)** | `post_content` (block HTML) | ✅ |
+| **Classic Editor (TinyMCE)** | `post_content` | ✅ |
+| **Elementor** | `_elementor_data` post meta (JSON) | ✅ (handled explicitly) |
+| **WPBakery Page Builder (Visual Composer)** | shortcodes in `post_content` | ✅ |
+| **Divi Builder** | shortcodes in `post_content` | ✅ |
+| **Avada / Fusion Builder** | shortcodes in `post_content` | ✅ |
+
+Builders that keep their content in their own custom post meta — for example Beaver Builder, Bricks, Oxygen, Brizy, Cornerstone, Themify, and Zion — are **not** covered, because the plugin only reads `post_content` and Elementor's `_elementor_data`.
+
 ## Requirements
 
 | Requirement | Minimum |
@@ -115,6 +130,9 @@ No. By design, the plugin uses exact string replacement to avoid the typical foo
 
 **Does it support custom post types?**
 Yes. Any post type whose permalink resolves through `url_to_postid()` is supported, including CPTs registered by other plugins or themes.
+
+**Which page builders are supported?**
+Replacely fully supports the Block Editor (Gutenberg), the Classic Editor, Elementor, WPBakery Page Builder (Visual Composer), Divi Builder, and Avada / Fusion Builder. In short, any editor or builder that stores its content in the standard WordPress `post_content` works, and Elementor is handled additionally because it keeps its content in the `_elementor_data` post meta. Builders that store content in their own custom post meta (such as Beaver Builder, Bricks, Oxygen, Brizy, Cornerstone, Themify, and Zion) are not covered. See [Supported page builders](#supported-page-builders) for the full breakdown.
 
 **Does it work with Elementor?**
 Yes. Elementor stores its page content as JSON in the `_elementor_data` post meta rather than in `post_content`, so the plugin searches and replaces inside that data as well — decoding it, replacing the text safely, re-encoding it, and saving. After a live run it regenerates Elementor's cached CSS so the change appears on the front end. Other page builders that keep content in their own storage are not covered.

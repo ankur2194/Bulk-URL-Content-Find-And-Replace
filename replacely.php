@@ -1,8 +1,8 @@
 <?php
 /**
  * Plugin Name:       Replacely – Bulk Content Find & Replace by URLs
- * Description:       Bulk find and replace exact text inside post, page, and custom post type content by providing a list of URLs or paths. Includes a safe dry-run preview, detailed results dashboard, and CSV export.
- * Version:           1.0.4
+ * Description:       Bulk find and replace exact text inside post, page, custom post type, and page-builder content (Elementor, Beaver Builder, Oxygen, Bricks) by providing a list of URLs or paths. Includes a safe dry-run preview, detailed results dashboard, and CSV export.
+ * Version:           1.1.0
  * Requires at least: 5.6
  * Requires PHP:      7.2
  * Author:            Ankur Patel
@@ -22,7 +22,7 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 // Define plugin constants.
 if ( ! defined( 'REPLACELY_VERSION' ) ) {
-	define( 'REPLACELY_VERSION', '1.0.4' );
+	define( 'REPLACELY_VERSION', '1.1.0' );
 }
 
 if ( ! defined( 'REPLACELY_PLUGIN_FILE' ) ) {

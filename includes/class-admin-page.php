@@ -284,8 +284,8 @@ class Admin_Page {
 				'edit_link'    => isset( $row['edit_link'] ) ? (string) $row['edit_link'] : '',
 				'view_link'    => isset( $row['view_link'] ) ? (string) $row['view_link'] : '',
 				'replacements' => isset( $row['replacements'] ) ? (int) $row['replacements'] : 0,
-				'content_replacements'   => isset( $row['content_replacements'] ) ? (int) $row['content_replacements'] : 0,
-				'elementor_replacements' => isset( $row['elementor_replacements'] ) ? (int) $row['elementor_replacements'] : 0,
+				'content_replacements' => isset( $row['content_replacements'] ) ? (int) $row['content_replacements'] : 0,
+				'builder_replacements' => isset( $row['builder_replacements'] ) && is_array( $row['builder_replacements'] ) ? array_map( 'intval', $row['builder_replacements'] ) : array(),
 			);
 		}
 
@@ -402,12 +402,22 @@ class Admin_Page {
 				__( 'Status', 'replacely' ),
 				__( 'Replacements', 'replacely' ),
 				__( 'Content Replacements', 'replacely' ),
-				__( 'Elementor Replacements', 'replacely' ),
+				__( 'Page Builder Replacements', 'replacely' ),
+				__( 'Builder Breakdown', 'replacely' ),
 				__( 'Message', 'replacely' ),
 			)
 		);
 
 		foreach ( $results['rows'] as $row ) {
+			$builder_map = isset( $row['builder_replacements'] ) && is_array( $row['builder_replacements'] )
+				? $row['builder_replacements']
+				: array();
+			// Backward compatibility for any older row shape using a flat
+			// elementor count.
+			if ( empty( $builder_map ) && ! empty( $row['elementor_replacements'] ) ) {
+				$builder_map = array( 'elementor' => (int) $row['elementor_replacements'] );
+			}
+
 			fputcsv(
 				$out,
 				array_map(
@@ -420,8 +430,9 @@ class Admin_Page {
 						isset( $row['post_title'] )   ? $row['post_title']   : '',
 						isset( $row['status'] )       ? Helper::status_label( $row['status'] ) : '',
 						isset( $row['replacements'] ) ? $row['replacements'] : 0,
-						isset( $row['content_replacements'] )   ? $row['content_replacements']   : 0,
-						isset( $row['elementor_replacements'] ) ? $row['elementor_replacements'] : 0,
+						isset( $row['content_replacements'] ) ? $row['content_replacements'] : 0,
+						(int) array_sum( $builder_map ),
+						$this->format_builder_breakdown( $builder_map ),
 						isset( $row['message'] )      ? $row['message']      : '',
 					)
 				)
@@ -468,11 +479,18 @@ class Admin_Page {
 		<div class="wrap replacely-wrap">
 			<div class="replacely-header">
 				<div class="replacely-header__title">
-					<span class="dashicons dashicons-search" aria-hidden="true"></span>
+					<img
+						class="replacely-header__logo"
+						src="<?php echo esc_url( REPLACELY_PLUGIN_URL . 'assets/icon.svg' ); ?>"
+						width="48"
+						height="48"
+						alt=""
+						aria-hidden="true"
+					/>
 					<div>
 						<h1><?php esc_html_e( 'Replacely', 'replacely' ); ?></h1>
 						<p class="replacely-header__subtitle">
-							<?php esc_html_e( 'Replace exact text inside any post, page, or custom post type — including pages built with Elementor — by listing the URLs or paths to process.', 'replacely' ); ?>
+							<?php esc_html_e( 'Replace exact text inside any post, page, or custom post type — including pages built with Elementor, Beaver Builder, Oxygen, or Bricks — by listing the URLs or paths to process.', 'replacely' ); ?>
 						</p>
 					</div>
 				</div>
@@ -718,7 +736,7 @@ class Admin_Page {
 					<li><?php esc_html_e( 'Capability-gated to administrators only.', 'replacely' ); ?></li>
 					<li><?php esc_html_e( 'Nonce-verified form submission.', 'replacely' ); ?></li>
 					<li><?php esc_html_e( 'Skips revisions, auto-drafts, and trashed posts.', 'replacely' ); ?></li>
-					<li><?php esc_html_e( 'Elementor page content is updated too, and its CSS cache is refreshed automatically.', 'replacely' ); ?></li>
+					<li><?php esc_html_e( 'Page-builder content (Elementor, Beaver Builder, Oxygen, Bricks) is updated too, and builder caches are refreshed automatically.', 'replacely' ); ?></li>
 					<li><?php esc_html_e( 'Duplicate URLs are processed only once.', 'replacely' ); ?></li>
 					<li><?php esc_html_e( 'Exact, case-sensitive matching — no regex surprises.', 'replacely' ); ?></li>
 				</ul>
@@ -877,8 +895,10 @@ class Admin_Page {
 			array(
 				'tone'  => 'info',
 				'icon'  => 'layout',
-				'label' => __( 'Elementor replacements', 'replacely' ),
-				'value' => isset( $summary['elementor_replacements'] ) ? (int) $summary['elementor_replacements'] : 0,
+				'label' => __( 'Page builder replacements', 'replacely' ),
+				'value' => ( isset( $summary['builder_replacements'] ) && is_array( $summary['builder_replacements'] ) )
+					? (int) array_sum( $summary['builder_replacements'] )
+					: 0,
 			),
 		);
 
@@ -898,23 +918,68 @@ class Admin_Page {
 	}
 
 	/**
-	 * Build the per-source replacement breakdown markup (classic content vs.
-	 * Elementor). Used by the results table, the updated-pages panel, and the
-	 * activity log so the user can always see where the replacements happened.
+	 * Normalise a per-row/per-entry builder breakdown into a slug => count map.
 	 *
-	 * Outputs nothing when neither source recorded a replacement — e.g. legacy
+	 * Accepts both the current shape (a `builder_replacements` array) and the
+	 * legacy shape (a flat `elementor_replacements` integer) so older activity-log
+	 * entries keep rendering correctly.
+	 *
+	 * @param array $data Result row or activity-log entry.
+	 * @return array<string,int> Builder slug => replacement count (only > 0).
+	 */
+	private function builder_map_from( array $data ) {
+		$map = array();
+
+		if ( isset( $data['builder_replacements'] ) && is_array( $data['builder_replacements'] ) ) {
+			foreach ( $data['builder_replacements'] as $slug => $count ) {
+				$count = (int) $count;
+				if ( $count > 0 ) {
+					$map[ $slug ] = $count;
+				}
+			}
+		} elseif ( ! empty( $data['elementor_replacements'] ) ) {
+			$map['elementor'] = (int) $data['elementor_replacements'];
+		}
+
+		return $map;
+	}
+
+	/**
+	 * Render a compact "Elementor: 2, Bricks: 1" string from a builder map.
+	 * Used by the CSV export so the per-builder split survives outside the UI.
+	 *
+	 * @param array<string,int> $builder_map Builder slug => count.
+	 * @return string
+	 */
+	private function format_builder_breakdown( array $builder_map ) {
+		$parts = array();
+		foreach ( $builder_map as $slug => $count ) {
+			if ( (int) $count <= 0 ) {
+				continue;
+			}
+			$parts[] = sprintf( '%s: %d', Helper::builder_label( $slug ), (int) $count );
+		}
+		return implode( '; ', $parts );
+	}
+
+	/**
+	 * Build the per-source replacement breakdown markup (classic content plus a
+	 * chip per page builder). Used by the results table, the updated-pages panel,
+	 * and the activity log so the user can always see where the replacements
+	 * happened.
+	 *
+	 * Outputs nothing when no source recorded a replacement — e.g. legacy
 	 * activity-log entries written before this split existed — so callers
 	 * gracefully fall back to showing just the total.
 	 *
-	 * @param int $content_count   Replacements made in classic post_content.
-	 * @param int $elementor_count Replacements made in Elementor (_elementor_data).
+	 * @param int               $content_count Replacements made in classic post_content.
+	 * @param array<string,int> $builder_map   Builder slug => replacement count.
 	 * @return void
 	 */
-	private function render_replacement_breakdown( $content_count, $elementor_count ) {
-		$content_count   = (int) $content_count;
-		$elementor_count = (int) $elementor_count;
+	private function render_replacement_breakdown( $content_count, array $builder_map ) {
+		$content_count = (int) $content_count;
 
-		if ( $content_count <= 0 && $elementor_count <= 0 ) {
+		if ( $content_count <= 0 && empty( $builder_map ) ) {
 			return;
 		}
 		?>
@@ -933,20 +998,23 @@ class Admin_Page {
 					?>
 				</span>
 			<?php endif; ?>
-			<?php if ( $elementor_count > 0 ) : ?>
-				<span class="replacely-rep-chip replacely-rep-chip--elementor">
-					<span class="dashicons dashicons-layout" aria-hidden="true"></span>
-					<?php
-					echo esc_html(
-						sprintf(
-							/* translators: %s: number of replacements made in Elementor content. */
-							__( 'Elementor: %s', 'replacely' ),
-							number_format_i18n( $elementor_count )
-						)
-					);
-					?>
-				</span>
-			<?php endif; ?>
+			<?php foreach ( $builder_map as $slug => $count ) : ?>
+				<?php if ( (int) $count > 0 ) : ?>
+					<span class="replacely-rep-chip replacely-rep-chip--<?php echo esc_attr( $slug ); ?>">
+						<span class="dashicons dashicons-<?php echo esc_attr( Helper::builder_dashicon( $slug ) ); ?>" aria-hidden="true"></span>
+						<?php
+						echo esc_html(
+							sprintf(
+								/* translators: 1: page builder name, 2: number of replacements made in that builder's content. */
+								__( '%1$s: %2$s', 'replacely' ),
+								Helper::builder_label( $slug ),
+								number_format_i18n( (int) $count )
+							)
+						);
+						?>
+					</span>
+				<?php endif; ?>
+			<?php endforeach; ?>
 		</span>
 		<?php
 	}
@@ -1002,8 +1070,8 @@ class Admin_Page {
 					$post_id   = isset( $row['post_id'] ) ? (int) $row['post_id'] : 0;
 					$post_type = isset( $row['post_type'] ) ? $row['post_type'] : '';
 					$reps      = isset( $row['replacements'] ) ? (int) $row['replacements'] : 0;
-					$content_reps   = isset( $row['content_replacements'] ) ? (int) $row['content_replacements'] : 0;
-					$elementor_reps = isset( $row['elementor_replacements'] ) ? (int) $row['elementor_replacements'] : 0;
+					$content_reps = isset( $row['content_replacements'] ) ? (int) $row['content_replacements'] : 0;
+					$builder_map  = $this->builder_map_from( $row );
 					$edit_url  = ! empty( $row['edit_link'] ) ? $row['edit_link'] : '';
 					$view_url  = ! empty( $row['view_link'] ) ? $row['view_link'] : '';
 					?>
@@ -1031,7 +1099,7 @@ class Admin_Page {
 									);
 									?>
 								</span>
-								<?php $this->render_replacement_breakdown( $content_reps, $elementor_reps ); ?>
+								<?php $this->render_replacement_breakdown( $content_reps, $builder_map ); ?>
 								<?php if ( ! empty( $row['resolved_url'] ) ) : ?>
 									<code class="replacely-updated-item__url"><?php echo esc_html( $row['resolved_url'] ); ?></code>
 								<?php endif; ?>
@@ -1129,8 +1197,8 @@ class Admin_Page {
 								$post_id   = isset( $entry['post_id'] ) ? (int) $entry['post_id'] : 0;
 								$post_type = isset( $entry['post_type'] ) ? $entry['post_type'] : '';
 								$reps      = isset( $entry['replacements'] ) ? (int) $entry['replacements'] : 0;
-								$content_reps   = isset( $entry['content_replacements'] ) ? (int) $entry['content_replacements'] : 0;
-								$elementor_reps = isset( $entry['elementor_replacements'] ) ? (int) $entry['elementor_replacements'] : 0;
+								$content_reps = isset( $entry['content_replacements'] ) ? (int) $entry['content_replacements'] : 0;
+								$builder_map  = $this->builder_map_from( $entry );
 								$edit_url  = ! empty( $entry['edit_link'] ) ? $entry['edit_link'] : '';
 								$view_url  = ! empty( $entry['view_link'] ) ? $entry['view_link'] : '';
 								$user_name = ! empty( $entry['user_name'] ) ? $entry['user_name'] : __( '—', 'replacely' );
@@ -1159,7 +1227,7 @@ class Admin_Page {
 									</td>
 									<td class="replacely-num">
 										<?php echo esc_html( number_format_i18n( $reps ) ); ?>
-										<?php $this->render_replacement_breakdown( $content_reps, $elementor_reps ); ?>
+										<?php $this->render_replacement_breakdown( $content_reps, $builder_map ); ?>
 									</td>
 									<td><?php echo esc_html( $user_name ); ?></td>
 									<td class="replacely-log__actions">
@@ -1292,7 +1360,7 @@ class Admin_Page {
 								<?php
 								$this->render_replacement_breakdown(
 									isset( $row['content_replacements'] ) ? (int) $row['content_replacements'] : 0,
-									isset( $row['elementor_replacements'] ) ? (int) $row['elementor_replacements'] : 0
+									$this->builder_map_from( $row )
 								);
 								?>
 							</td>

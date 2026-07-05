@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-A WordPress plugin: **Replacely**. An admin tool (Tools → Replacely) that does exact, case-sensitive find/replace inside the content of specific posts identified by a list of URLs/paths — including Elementor-built pages. Has a dry-run mode, a results dashboard, CSV export, and a persistent activity log.
+A WordPress plugin: **Replacely**. An admin tool (Tools → Replacely) that does exact, case-sensitive find/replace inside the content of specific posts identified by a list of URLs/paths — including pages built with Elementor, Beaver Builder, Oxygen, and Bricks. Has a dry-run mode, a results dashboard, CSV export, and a persistent activity log.
 
 There is **no build step, no package manager, and no test suite**. It is plain PHP loaded directly by WordPress; CSS/JS in `assets/` are hand-written and served as-is. To run it, drop the directory into `wp-content/plugins/` of a WordPress install and activate. Code only executes inside a WordPress runtime — there is no standalone entry point to invoke.
 
@@ -35,9 +35,17 @@ The **activity log** is different and persistent: stored in the `replacely_activ
 
 Per line: `Helper::normalize_to_url()` (absolute URLs pass through `esc_url_raw`; anything else is treated as a relative path on this site) → `url_to_postid()` → load the post. Lines short-circuit into status codes: `invalid_url`, `duplicate` (post ID already seen this run), `skipped` (auto-draft / inherit / trash / revision), `not_supported` (no `edit_post` cap), `no_match`, `preview` (dry run), `updated`, `failed`.
 
-Two content sources are searched and counted per post:
-1. **Classic `post_content`** — `substr_count` to count, `str_replace` to apply, saved via `wp_update_post`.
-2. **Elementor `_elementor_data`** — JSON in post meta, not in `post_content`. It is `json_decode`'d, walked recursively by `replace_in_structure()` which only touches *string leaves* (scalars are preserved to keep Elementor's setting types intact), re-encoded with `wp_json_encode` (matches Elementor's slash-escaping), and saved with `update_post_meta(..., wp_slash($json))`. The stale per-post `_elementor_css` meta is deleted immediately; a single full `Elementor\Plugin::$instance->files_manager->clear_cache()` runs once at the end of the batch (guarded by `class_exists` so it's a no-op without Elementor).
+Content sources searched and counted per post:
+1. **Classic `post_content`** — `substr_count` to count, `str_replace` to apply, saved via `wp_update_post`. This single pass also covers shortcode-based builders (WPBakery, Divi, Avada/Fusion) since they keep their content here.
+2. **Page builders that store content in post meta** — Elementor, Beaver Builder, Oxygen, and Bricks. These are driven by a data-driven registry in `Replacer::builder_definitions()`, keyed by builder slug. Each entry declares a `format` and which meta keys to read:
+   - `format` is `'json'` (Elementor `_elementor_data`), `'php'` (Beaver `_fl_builder_data` + `_fl_builder_draft`; Bricks `_bricks_page_content_2`/header/footer — already-unserialized arrays/objects from `get_post_meta`), or `'string'` (Oxygen `ct_builder_shortcodes`, a plain shortcode string treated like content).
+   - `count_keys` are the front-end source of truth that contribute to the user-facing count; `apply_keys` is a superset that also gets rewritten (e.g. Beaver's draft mirror is applied but **not** counted, to avoid double-counting). Bricks' three regions are all both counted and applied since they're distinct content.
+   - `scan_builders()` builds a plan (`counts` map + `writes` list + `encode_failed` flag); `replace_in_meta()` does the per-format decode/replace/encode; `replace_in_structure()` walks **arrays *and* objects**, touching only *string leaves* (scalars preserved). `apply_builder_writes()` saves each write with `update_post_meta(..., wp_slash($value))` (`wp_slash` recurses into arrays/objects). JSON re-encode failure with matches present aborts the whole post (reported as `failed`) rather than writing a corrupt value.
+   - Cache invalidation: Elementor deletes per-post `_elementor_css` and runs one batch `files_manager->clear_cache()` at the end (guarded by `class_exists`); Beaver calls `\FLBuilderModel::delete_asset_cache($post_id)` per updated post (guarded). Oxygen/Bricks render text from their data at runtime, so no cache clear is needed for text changes.
+
+Per-row data carries `content_replacements` (int) and `builder_replacements` (slug→count map); the summary aggregates the same. The UI/CSV render this via `Admin_Page::builder_map_from()` (which also reads the legacy flat `elementor_replacements` shape from old activity-log entries). Builder labels/dashicons live in `Helper::builders()` / `builder_label()` / `builder_dashicon()`.
+
+To add another meta-based builder: add an entry to `builder_definitions()` (pick the right `format`), add its slug→label to `Helper::builders()` (and an icon in `builder_dashicon()`), and add a cache-clear branch in `apply_builder_writes()` if the builder caches rendered output. The UI, CSV, and activity log pick it up automatically.
 
 Matching is intentionally exact and case-sensitive — **no regex**. If asked to add fuzzy/regex/case-insensitive matching, that's a deliberate design departure; confirm intent first.
 

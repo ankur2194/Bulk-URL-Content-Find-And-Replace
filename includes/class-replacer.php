@@ -59,6 +59,56 @@ class Replacer {
 	}
 
 	/**
+	 * Definitions for the page builders that keep their content outside the
+	 * classic `post_content`. Each entry describes how the builder stores its
+	 * data so the engine can read, replace, and write it back losslessly.
+	 *
+	 * Keys:
+	 * - format:     'json' (JSON string in meta), 'php' (already-unserialized
+	 *               array/object meta), or 'string' (plain string in meta).
+	 * - count_keys: meta keys whose matches are reported to the user. These are
+	 *               the front-end source of truth (e.g. the published layout, or
+	 *               each distinct Bricks region).
+	 * - apply_keys: meta keys that actually get rewritten when replacing. This is
+	 *               a superset of count_keys so mirror copies (such as Beaver's
+	 *               draft) stay in sync without being double-counted.
+	 *
+	 * @return array<string,array>
+	 */
+	private function builder_definitions() {
+		return array(
+			// Elementor stores page content as JSON in a single meta key.
+			'elementor' => array(
+				'format'     => 'json',
+				'count_keys' => array( '_elementor_data' ),
+				'apply_keys' => array( '_elementor_data' ),
+			),
+			// Beaver Builder stores a serialized array of node objects. The
+			// published layout (`_fl_builder_data`) is what renders; the draft
+			// mirror is updated too but not counted, to avoid double counting.
+			'beaver'    => array(
+				'format'     => 'php',
+				'count_keys' => array( '_fl_builder_data' ),
+				'apply_keys' => array( '_fl_builder_data', '_fl_builder_draft' ),
+			),
+			// Oxygen stores a plain shortcode string; visible text lives directly
+			// inside it, so it is treated like classic content.
+			'oxygen'    => array(
+				'format'     => 'string',
+				'count_keys' => array( 'ct_builder_shortcodes' ),
+				'apply_keys' => array( 'ct_builder_shortcodes' ),
+			),
+			// Bricks stores a serialized element tree per template region. Each
+			// region is distinct content, so all three are counted and applied.
+			'bricks'    => array(
+				'format'     => 'php',
+				'count_keys' => array( '_bricks_page_content_2', '_bricks_page_header_2', '_bricks_page_footer_2' ),
+				'apply_keys' => array( '_bricks_page_content_2', '_bricks_page_header_2', '_bricks_page_footer_2' ),
+			),
+		);
+	}
+
+	/**
 	 * Process a list of URLs/paths and return a structured result set.
 	 *
 	 * @param string[] $lines List of raw URL/path lines.
@@ -68,21 +118,23 @@ class Replacer {
 		$rows = array();
 		$seen_post_ids   = array();
 		$summary = array(
-			'total'              => count( $lines ),
-			'updated'            => 0,
-			'previewed'          => 0,
-			'no_match'           => 0,
-			'invalid'            => 0,
-			'failed'             => 0,
-			'duplicate'          => 0,
-			'skipped'            => 0,
-			'total_replacements'     => 0,
-			'content_replacements'   => 0,
-			'elementor_replacements' => 0,
-			'started_at'         => microtime( true ),
-			'duration'           => 0.0,
-			'timestamp'          => current_time( 'mysql' ),
-			'dry_run'            => $this->dry_run,
+			'total'                => count( $lines ),
+			'updated'              => 0,
+			'previewed'            => 0,
+			'no_match'             => 0,
+			'invalid'              => 0,
+			'failed'               => 0,
+			'duplicate'            => 0,
+			'skipped'              => 0,
+			'total_replacements'   => 0,
+			'content_replacements' => 0,
+			// Aggregated builder breakdown, keyed by builder slug (only populated
+			// for builders that actually recorded a replacement this run).
+			'builder_replacements' => array(),
+			'started_at'           => microtime( true ),
+			'duration'             => 0.0,
+			'timestamp'            => current_time( 'mysql' ),
+			'dry_run'              => $this->dry_run,
 		);
 
 		if ( '' === $this->search ) {
@@ -122,18 +174,18 @@ class Replacer {
 	 */
 	private function process_single_line( $line, array &$seen_post_ids, array &$summary ) {
 		$row = array(
-			'input'         => $line,
-			'resolved_url'  => '',
-			'post_id'       => 0,
-			'post_type'     => '',
-			'post_title'    => '',
-			'status'        => 'failed',
-			'replacements'  => 0,
-			'content_replacements'   => 0,
-			'elementor_replacements' => 0,
-			'message'       => '',
-			'edit_link'     => '',
-			'view_link'     => '',
+			'input'                => $line,
+			'resolved_url'         => '',
+			'post_id'              => 0,
+			'post_type'            => '',
+			'post_title'           => '',
+			'status'               => 'failed',
+			'replacements'         => 0,
+			'content_replacements' => 0,
+			'builder_replacements' => array(),
+			'message'              => '',
+			'edit_link'            => '',
+			'view_link'            => '',
 		);
 
 		$normalized = Helper::normalize_to_url( $line );
@@ -220,39 +272,33 @@ class Replacer {
 		$content = (string) $post->post_content;
 
 		// Count matches in classic post_content. substr_count uses strict, exact
-		// matching — perfect for "exact text match only".
-		$content_count = ( '' !== $this->search ) ? substr_count( $content, $this->search ) : 0;
+		// matching — perfect for "exact text match only". Shortcode-based builders
+		// (WPBakery, Divi, Avada/Fusion) keep their content here, so they are
+		// covered by this single classic-content pass.
+		$content_count = substr_count( $content, $this->search );
 
-		// Elementor stores the real page content as JSON in the _elementor_data
-		// post meta, not in post_content. Decode it, replace inside every string
-		// leaf, and re-encode so the change survives the round-trip exactly.
-		$elementor_count = 0;
-		$new_elementor   = null;
-		$elementor_raw   = get_post_meta( $post->ID, '_elementor_data', true );
-		if ( '' !== $this->search && is_string( $elementor_raw ) && '' !== $elementor_raw ) {
-			$decoded = json_decode( $elementor_raw, true );
-			if ( is_array( $decoded ) ) {
-				$replaced = $this->replace_in_structure( $decoded, $elementor_count );
-				if ( $elementor_count > 0 ) {
-					// wp_json_encode re-escapes forward slashes, matching the exact
-					// format Elementor writes to the database.
-					$new_elementor = wp_json_encode( $replaced );
-				}
-			}
-		}
+		// Scan every supported page builder that stores its content in post meta
+		// (Elementor, Beaver, Oxygen, Bricks). Each returns a planned set of
+		// writes plus a per-builder match count.
+		$builder_plan = $this->scan_builders( $post->ID );
 
-		// If a replacement was found in the Elementor data but the result could
-		// not be safely re-encoded, refuse to touch this post rather than risk
-		// writing a corrupt (empty) value to _elementor_data.
-		if ( $elementor_count > 0 && ! is_string( $new_elementor ) ) {
+		// If a replacement was found in a builder's data but the result could not
+		// be safely re-encoded, refuse to touch this post rather than risk writing
+		// a corrupt value to the meta.
+		if ( ! empty( $builder_plan['encode_failed'] ) ) {
 			$row['status']   = 'failed';
-			$row['message']  = __( 'Elementor data could not be safely re-encoded; this post was left unchanged.', 'replacely' );
+			$row['message']  = sprintf(
+				/* translators: %s: page builder name. */
+				__( '%s data could not be safely re-encoded; this post was left unchanged.', 'replacely' ),
+				Helper::builder_label( $builder_plan['encode_failed'] )
+			);
 			$summary['failed']++;
 			$seen_post_ids[] = (int) $post->ID;
 			return $row;
 		}
 
-		$count = $content_count + $elementor_count;
+		$builder_counts = $builder_plan['counts'];
+		$count          = $content_count + (int) array_sum( $builder_counts );
 
 		if ( 0 === $count ) {
 			$row['status']  = 'no_match';
@@ -262,12 +308,17 @@ class Replacer {
 			return $row;
 		}
 
-		$row['replacements']           = $count;
-		$row['content_replacements']   = $content_count;
-		$row['elementor_replacements'] = $elementor_count;
-		$summary['total_replacements']     += $count;
-		$summary['content_replacements']   += $content_count;
-		$summary['elementor_replacements'] += $elementor_count;
+		$row['replacements']         = $count;
+		$row['content_replacements'] = $content_count;
+		$row['builder_replacements'] = $builder_counts;
+		$summary['total_replacements']   += $count;
+		$summary['content_replacements'] += $content_count;
+		foreach ( $builder_counts as $slug => $slug_count ) {
+			if ( ! isset( $summary['builder_replacements'][ $slug ] ) ) {
+				$summary['builder_replacements'][ $slug ] = 0;
+			}
+			$summary['builder_replacements'][ $slug ] += $slug_count;
+		}
 
 		if ( $this->dry_run ) {
 			$row['status']  = 'preview';
@@ -287,7 +338,7 @@ class Replacer {
 		}
 
 		// Perform the actual update(s). A single post can have both classic
-		// post_content and Elementor data; update whichever actually changed.
+		// post_content and page-builder data; update whichever actually changed.
 		$something_changed = false;
 
 		// 1) Classic post_content.
@@ -315,16 +366,9 @@ class Replacer {
 			}
 		}
 
-		// 2) Elementor page-builder data (_elementor_data).
-		if ( $elementor_count > 0 && null !== $new_elementor ) {
-			// wp_slash counteracts the wp_unslash that update_metadata() applies,
-			// so the JSON is stored exactly as Elementor expects it.
-			update_post_meta( $post->ID, '_elementor_data', wp_slash( $new_elementor ) );
-			// Drop the stale per-post inline CSS cache; a full regeneration runs
-			// once at the end of the batch (see process()).
-			delete_post_meta( $post->ID, '_elementor_css' );
-			$this->elementor_dirty = true;
-			$something_changed      = true;
+		// 2) Page-builder data stored in post meta.
+		if ( $this->apply_builder_writes( $post->ID, $builder_plan['writes'] ) ) {
+			$something_changed = true;
 		}
 
 		// Defence in depth: if for some reason nothing actually changed, report it.
@@ -354,13 +398,201 @@ class Replacer {
 	}
 
 	/**
-	 * Recursively walk a decoded Elementor data structure and run the exact
-	 * find & replace against every string leaf, accumulating the match count.
+	 * Inspect every supported builder's meta for the given post and build a plan
+	 * describing what would change.
 	 *
-	 * Non-string scalars (ints, floats, bools, null) are returned untouched so
-	 * Elementor's setting types are preserved exactly.
+	 * @param int $post_id Post ID.
+	 * @return array{
+	 *     counts: array<string,int>,
+	 *     writes: array<int,array{slug:string,key:string,format:string,value:mixed}>,
+	 *     encode_failed: string|false
+	 * }
+	 */
+	private function scan_builders( $post_id ) {
+		$counts = array();
+		$writes = array();
+
+		foreach ( $this->builder_definitions() as $slug => $def ) {
+			$count_keys    = $def['count_keys'];
+			$builder_count = 0;
+			$builder_writes = array();
+
+			foreach ( $def['apply_keys'] as $key ) {
+				$raw = get_post_meta( $post_id, $key, true );
+
+				$result = $this->replace_in_meta( $raw, $def['format'] );
+				if ( false !== $result['encode_failed'] && $result['count'] > 0 ) {
+					// Abort the whole post: surface which builder failed.
+					return array(
+						'counts'        => array(),
+						'writes'        => array(),
+						'encode_failed' => $slug,
+					);
+				}
+
+				if ( $result['count'] <= 0 ) {
+					continue;
+				}
+
+				$builder_writes[] = array(
+					'slug'   => $slug,
+					'key'    => $key,
+					'format' => $def['format'],
+					'value'  => $result['value'],
+				);
+
+				// Only meta keys flagged as "count keys" contribute to the
+				// user-facing number (mirror copies such as Beaver's draft do not).
+				if ( in_array( $key, $count_keys, true ) ) {
+					$builder_count += $result['count'];
+				}
+			}
+
+			// Only act on a builder whose front-end (counted) content matched.
+			// This avoids editing stale mirror copies for builders whose primary
+			// data has no match.
+			if ( $builder_count > 0 ) {
+				$counts[ $slug ] = $builder_count;
+				$writes          = array_merge( $writes, $builder_writes );
+			}
+		}
+
+		return array(
+			'counts'        => $counts,
+			'writes'        => $writes,
+			'encode_failed' => false,
+		);
+	}
+
+	/**
+	 * Apply a planned set of builder meta writes to a post.
 	 *
-	 * @param mixed $node  Current node (array or scalar) from the decoded JSON.
+	 * @param int   $post_id Post ID.
+	 * @param array $writes  Planned writes from {@see Replacer::scan_builders()}.
+	 * @return bool Whether anything was written.
+	 */
+	private function apply_builder_writes( $post_id, array $writes ) {
+		if ( empty( $writes ) ) {
+			return false;
+		}
+
+		$changed       = false;
+		$beaver_dirty  = false;
+
+		foreach ( $writes as $write ) {
+			// wp_slash counteracts the wp_unslash that update_metadata() applies,
+			// so the value is stored exactly as the builder expects it. wp_slash
+			// recurses into arrays and objects, so it is safe for every format.
+			update_post_meta( $post_id, $write['key'], wp_slash( $write['value'] ) );
+			$changed = true;
+
+			switch ( $write['slug'] ) {
+				case 'elementor':
+					// Drop the stale per-post inline CSS cache; a full regeneration
+					// runs once at the end of the batch (see process()).
+					delete_post_meta( $post_id, '_elementor_css' );
+					$this->elementor_dirty = true;
+					break;
+				case 'beaver':
+					$beaver_dirty = true;
+					break;
+			}
+		}
+
+		// Beaver Builder caches the rendered layout CSS/JS per post, so clear it
+		// for this post or the front end keeps serving the old text. Guarded so it
+		// is a no-op when Beaver Builder is not active.
+		if ( $beaver_dirty && class_exists( '\\FLBuilderModel' ) && method_exists( '\\FLBuilderModel', 'delete_asset_cache' ) ) {
+			\FLBuilderModel::delete_asset_cache( $post_id );
+		}
+
+		return $changed;
+	}
+
+	/**
+	 * Run the find & replace against a single meta value according to its storage
+	 * format, returning the match count and the rewritten value.
+	 *
+	 * @param mixed  $raw    Raw meta value (string for json/string formats, an
+	 *                       already-unserialized array/object for the php format).
+	 * @param string $format One of 'json', 'php', or 'string'.
+	 * @return array{count:int,value:mixed,encode_failed:string|bool}
+	 */
+	private function replace_in_meta( $raw, $format ) {
+		$count = 0;
+
+		if ( 'string' === $format ) {
+			if ( ! is_string( $raw ) || '' === $raw ) {
+				return array(
+					'count'         => 0,
+					'value'         => null,
+					'encode_failed' => false,
+				);
+			}
+			$value = str_replace( $this->search, $this->replace, $raw, $count );
+			return array(
+				'count'         => $count,
+				'value'         => $value,
+				'encode_failed' => false,
+			);
+		}
+
+		if ( 'json' === $format ) {
+			if ( ! is_string( $raw ) || '' === $raw ) {
+				return array(
+					'count'         => 0,
+					'value'         => null,
+					'encode_failed' => false,
+				);
+			}
+			$decoded = json_decode( $raw, true );
+			if ( ! is_array( $decoded ) ) {
+				return array(
+					'count'         => 0,
+					'value'         => null,
+					'encode_failed' => false,
+				);
+			}
+			$replaced = $this->replace_in_structure( $decoded, $count );
+			$value    = null;
+			if ( $count > 0 ) {
+				// wp_json_encode re-escapes forward slashes, matching the exact
+				// format builders like Elementor write to the database.
+				$value = wp_json_encode( $replaced );
+			}
+			return array(
+				'count'         => $count,
+				'value'         => $value,
+				'encode_failed' => ( $count > 0 && ! is_string( $value ) ),
+			);
+		}
+
+		// 'php' format: get_post_meta() already returned an unserialized
+		// array/object structure. Walk it and let update_post_meta() re-serialize.
+		if ( ! is_array( $raw ) && ! is_object( $raw ) ) {
+			return array(
+				'count'         => 0,
+				'value'         => null,
+				'encode_failed' => false,
+			);
+		}
+		$replaced = $this->replace_in_structure( $raw, $count );
+		return array(
+			'count'         => $count,
+			'value'         => ( $count > 0 ) ? $replaced : null,
+			'encode_failed' => false,
+		);
+	}
+
+	/**
+	 * Recursively walk a decoded data structure and run the exact find & replace
+	 * against every string leaf, accumulating the match count.
+	 *
+	 * Handles arrays and objects (e.g. Beaver Builder's stdClass nodes). Non-string
+	 * scalars (ints, floats, bools, null) are returned untouched so each builder's
+	 * setting types are preserved exactly.
+	 *
+	 * @param mixed $node  Current node (array, object, or scalar) from the data.
 	 * @param int   $count Reference to the running replacement count.
 	 * @return mixed The node with replacements applied to its string leaves.
 	 */
@@ -368,6 +600,13 @@ class Replacer {
 		if ( is_array( $node ) ) {
 			foreach ( $node as $key => $value ) {
 				$node[ $key ] = $this->replace_in_structure( $value, $count );
+			}
+			return $node;
+		}
+
+		if ( is_object( $node ) ) {
+			foreach ( get_object_vars( $node ) as $key => $value ) {
+				$node->$key = $this->replace_in_structure( $value, $count );
 			}
 			return $node;
 		}

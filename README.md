@@ -1,11 +1,11 @@
 # Replacely – Bulk Content Find & Replace by URLs
 
-> A WordPress administration tool for safely performing **bulk find and replace** on post, page, and custom-post-type content — including pages built with Elementor — across a curated list of URLs or paths, with a dry-run preview, a polished results dashboard, CSV export, and a persistent activity log.
+> A WordPress administration tool for safely performing **bulk find and replace** on post, page, and custom-post-type content — including pages built with Elementor, Beaver Builder, Oxygen, and Bricks — across a curated list of URLs or paths, with a dry-run preview, a polished results dashboard, CSV export, and a persistent activity log.
 
 [![WordPress](https://img.shields.io/badge/WordPress-5.6%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.2%2B-purple.svg)](https://www.php.net/)
 [![License: GPL v2+](https://img.shields.io/badge/License-GPL%20v2%2B-green.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
-[![Version](https://img.shields.io/badge/version-1.0.4-orange.svg)](#changelog)
+[![Version](https://img.shields.io/badge/version-1.1.0-orange.svg)](#changelog)
 
 ---
 
@@ -21,9 +21,9 @@ It is built for site owners, agencies, and developers who need surgical, predict
 - **Exact, case-sensitive matching** — No regex foot-guns. What you type is what gets replaced.
 - **Mixed URL and path support** — Accepts full URLs (`https://example.com/sample-page/`) and relative paths (`/sample-page/`).
 - **Any post type** — Detects target posts via `url_to_postid()`, so it works with posts, pages, and any registered CPT (including those from other plugins or themes).
-- **Elementor-aware** — Also finds and replaces text inside Elementor page content stored in `_elementor_data`, then refreshes Elementor's CSS cache so the changes appear on the front end right away.
+- **Page-builder aware** — Also finds and replaces text inside Elementor, Beaver Builder, Oxygen, and Bricks page content (which lives in post meta, not `post_content`), then refreshes the relevant builder cache so the changes appear on the front end right away.
 - **Dry Run mode** — Preview the exact number of replacements per URL *before* writing anything to the database.
-- **Results dashboard** — Summary tiles, status colors, dashicons, and a detailed per-URL table, with replacement counts broken down by source (classic content vs. Elementor).
+- **Results dashboard** — Summary tiles, status colors, dashicons, and a detailed per-URL table, with replacement counts broken down by source (classic content vs. each page builder).
 - **CSV export & Copy to clipboard** — Share or archive results in one click.
 - **Persistent activity log** — Every live replacement is recorded on-screen: which page changed, when, by whom, how many replacements, with View/Edit links. Keeps the 200 most recent updates and can be cleared at any time. Dry-run previews are never logged.
 - **Safety first** — Skips revisions, auto-drafts, and trashed posts. Duplicate URLs are deduplicated.
@@ -33,18 +33,21 @@ It is built for site owners, agencies, and developers who need surgical, predict
 
 ## Supported page builders
 
-Replacely fully supports any editor or page builder that stores its content in the standard WordPress `post_content`, plus Elementor, which keeps its content in dedicated post meta:
+Replacely fully supports any editor or page builder that stores its content in the standard WordPress `post_content`, plus four popular builders that keep their content in dedicated post meta:
 
 | Editor / page builder | Where content is stored | Supported |
 | --------------------- | ----------------------- | --------- |
 | **Block Editor (Gutenberg)** | `post_content` (block HTML) | ✅ |
 | **Classic Editor (TinyMCE)** | `post_content` | ✅ |
-| **Elementor** | `_elementor_data` post meta (JSON) | ✅ (handled explicitly) |
 | **WPBakery Page Builder (Visual Composer)** | shortcodes in `post_content` | ✅ |
 | **Divi Builder** | shortcodes in `post_content` | ✅ |
 | **Avada / Fusion Builder** | shortcodes in `post_content` | ✅ |
+| **Elementor** | `_elementor_data` post meta (JSON) | ✅ |
+| **Beaver Builder** | `_fl_builder_data` post meta (serialized layout) + draft mirror | ✅ |
+| **Oxygen** | `ct_builder_shortcodes` post meta (shortcode string) | ✅ |
+| **Bricks** | `_bricks_page_content_2` / header / footer post meta (serialized tree) | ✅ |
 
-Builders that keep their content in their own custom post meta — for example Beaver Builder, Bricks, Oxygen, Brizy, Cornerstone, Themify, and Zion — are **not** covered, because the plugin only reads `post_content` and Elementor's `_elementor_data`.
+For the meta-based builders, the plugin decodes the stored structure, replaces the text inside it, writes it back losslessly in the format the builder expects, and clears the builder's cache where needed (Elementor's CSS cache and Beaver Builder's asset cache). Builders not listed above — for example Brizy, Cornerstone, Themify, and Zion — are **not** yet covered.
 
 ## Requirements
 
@@ -94,8 +97,8 @@ Builders that keep their content in their own custom post meta — for example B
 ## How It Works
 
 1. URLs are normalised, deduplicated, and converted to post IDs via WordPress's `url_to_postid()`.
-2. Each resolved post's `post_content` — and, for Elementor-built pages, its `_elementor_data` — is loaded and scanned for an exact, case-sensitive match of the search string.
-3. Matches are counted and replaced with the replacement string (in Dry Run mode nothing is saved). Elementor content is decoded from JSON, replaced safely string-by-string, re-encoded, and saved; Elementor's cached CSS is then regenerated so the change shows on the front end.
+2. Each resolved post's `post_content` — and, for pages built with Elementor, Beaver Builder, Oxygen, or Bricks, the relevant builder post meta — is loaded and scanned for an exact, case-sensitive match of the search string.
+3. Matches are counted and replaced with the replacement string (in Dry Run mode nothing is saved). Page-builder content is decoded from its stored format (JSON, a serialized layout, or a shortcode string), replaced safely string-by-string, written back in the exact format the builder expects, and the relevant builder cache (Elementor's CSS, Beaver Builder's assets) is cleared so the change shows on the front end. Counts are tracked per source so you can see how many replacements came from classic content vs. each builder.
 4. Revisions, auto-drafts, and trashed posts are skipped automatically.
 5. The most recent results are stored in a short-lived per-user transient (15 minutes) so the CSV export endpoint can stream them.
 6. Every page actually changed by a **live** run is appended to a persistent activity log (newest first, capped at the 200 most recent entries) so you keep an on-screen audit trail of what was modified, when, and by whom. Dry-run previews are not logged.
@@ -132,10 +135,10 @@ No. By design, the plugin uses exact string replacement to avoid the typical foo
 Yes. Any post type whose permalink resolves through `url_to_postid()` is supported, including CPTs registered by other plugins or themes.
 
 **Which page builders are supported?**
-Replacely fully supports the Block Editor (Gutenberg), the Classic Editor, Elementor, WPBakery Page Builder (Visual Composer), Divi Builder, and Avada / Fusion Builder. In short, any editor or builder that stores its content in the standard WordPress `post_content` works, and Elementor is handled additionally because it keeps its content in the `_elementor_data` post meta. Builders that store content in their own custom post meta (such as Beaver Builder, Bricks, Oxygen, Brizy, Cornerstone, Themify, and Zion) are not covered. See [Supported page builders](#supported-page-builders) for the full breakdown.
+Replacely fully supports the Block Editor (Gutenberg), the Classic Editor, WPBakery Page Builder (Visual Composer), Divi Builder, Avada / Fusion Builder, Elementor, Beaver Builder, Oxygen, and Bricks. Any editor or builder that stores its content in the standard WordPress `post_content` works automatically; Elementor, Beaver Builder, Oxygen, and Bricks are handled additionally because they keep their content in their own post meta. Builders not listed (such as Brizy, Cornerstone, Themify, and Zion) are not yet covered. See [Supported page builders](#supported-page-builders) for the full breakdown.
 
-**Does it work with Elementor?**
-Yes. Elementor stores its page content as JSON in the `_elementor_data` post meta rather than in `post_content`, so the plugin searches and replaces inside that data as well — decoding it, replacing the text safely, re-encoding it, and saving. After a live run it regenerates Elementor's cached CSS so the change appears on the front end. Other page builders that keep content in their own storage are not covered.
+**Does it work with Elementor, Beaver Builder, Oxygen, and Bricks?**
+Yes. These builders store their page content in post meta rather than in `post_content`, so the plugin reads that meta as well — decoding the stored structure (JSON for Elementor, a serialized layout for Beaver Builder and Bricks, a shortcode string for Oxygen), replacing the text inside it safely, and writing it back in the exact format the builder expects. After a live run it clears the relevant builder cache (Elementor's CSS cache and Beaver Builder's asset cache) so the change appears on the front end. Per-builder replacement counts are shown separately in the results, the activity log, and the CSV export.
 
 **Will my revisions be modified?**
 No. Revisions, auto-drafts, and trashed posts are skipped.
@@ -156,6 +159,11 @@ No. It is stored in a single non-autoloaded option that is hard-capped at 200 en
 The plugin cleans up after itself. Deleting it from the **Plugins** screen removes everything it stored in the database — the activity-log option and every per-user results/state transient (on multisite, the cleanup runs for each site in the network). The actual content changes made to your posts are intentionally left in place, since those are real edits to your site, not plugin data.
 
 ## Changelog
+
+### 1.1.0
+- Added find & replace support for three more page builders that store content in post meta — **Beaver Builder** (`_fl_builder_data` plus its draft mirror), **Oxygen** (`ct_builder_shortcodes`), and **Bricks** (`_bricks_page_content_2` and its header/footer regions) — alongside the existing Elementor support.
+- Beaver Builder's per-post asset cache is now cleared automatically after a live replacement so the change shows on the front end.
+- The replacement breakdown across the summary tiles, results table, "pages updated" panel, activity log, and CSV export now reports a per-builder split. The "Elementor replacements" tile became "Page builder replacements", and the CSV gained a "Builder Breakdown" column.
 
 ### 1.0.4
 - Renamed the plugin to **Replacely – Bulk Content Find & Replace by URLs** and standardized internal prefixes, namespace, and admin asset identifiers (no user-facing functional change).

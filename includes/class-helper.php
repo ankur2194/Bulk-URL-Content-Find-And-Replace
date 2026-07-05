@@ -47,6 +47,59 @@ class Helper {
 	const LOG_LIMIT = 200;
 
 	/**
+	 * Canonical list of supported page builders that store their content outside
+	 * the classic `post_content`. Keyed by an internal slug used throughout the
+	 * results, CSV export, and activity log; the value is the human-readable
+	 * label shown in the UI.
+	 *
+	 * Classic `post_content` (Gutenberg, Classic Editor, and shortcode-based
+	 * builders such as WPBakery, Divi, and Avada/Fusion) is handled separately
+	 * and is intentionally not listed here.
+	 *
+	 * @return array<string,string> Map of builder slug => translated label.
+	 */
+	public static function builders() {
+		return array(
+			'elementor' => __( 'Elementor', 'replacely' ),
+			'beaver'    => __( 'Beaver Builder', 'replacely' ),
+			'oxygen'    => __( 'Oxygen', 'replacely' ),
+			'bricks'    => __( 'Bricks', 'replacely' ),
+		);
+	}
+
+	/**
+	 * Translate a builder slug into its human-readable label.
+	 *
+	 * @param string $slug Builder slug (e.g. "elementor").
+	 * @return string Translated label, or a title-cased fallback for unknown slugs.
+	 */
+	public static function builder_label( $slug ) {
+		$builders = self::builders();
+		return isset( $builders[ $slug ] ) ? $builders[ $slug ] : ucfirst( str_replace( '_', ' ', (string) $slug ) );
+	}
+
+	/**
+	 * Dashicon used to represent a page builder in the replacement breakdown.
+	 *
+	 * @param string $slug Builder slug.
+	 * @return string Dashicon name (without the leading "dashicons-").
+	 */
+	public static function builder_dashicon( $slug ) {
+		switch ( $slug ) {
+			case 'elementor':
+				return 'layout';
+			case 'beaver':
+				return 'screenoptions';
+			case 'oxygen':
+				return 'admin-customizer';
+			case 'bricks':
+				return 'grid-view';
+			default:
+				return 'layout';
+		}
+	}
+
+	/**
 	 * Prepend successful-update entries to the persistent activity log.
 	 *
 	 * Newest entries appear first. The log is hard-capped at LOG_LIMIT entries

@@ -66,6 +66,14 @@
 	box-sizing: content-box;
 }
 
+.replacely-header__logo {
+	width: 48px;
+	height: 48px;
+	border-radius: 11px;
+	flex-shrink: 0;
+	box-shadow: 0 4px 10px rgba(15, 82, 133, 0.25);
+}
+
 .replacely-header__title h1 {
 	margin: 0 0 4px;
 	font-size: 22px;
@@ -727,6 +735,21 @@
 .replacely-rep-chip--elementor {
 	background: #fbeaf2;
 	color: #a32a6d;
+}
+
+.replacely-rep-chip--beaver {
+	background: #fdece3;
+	color: #b4451c;
+}
+
+.replacely-rep-chip--oxygen {
+	background: #e6f0fb;
+	color: #1b5fa8;
+}
+
+.replacely-rep-chip--bricks {
+	background: #efe7fb;
+	color: #6a35b8;
 }
 
 /* In the numeric "Replacements" cells the chips sit on their own line,

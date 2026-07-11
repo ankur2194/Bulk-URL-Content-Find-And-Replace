@@ -1,15 +1,15 @@
 === Replacely – Bulk Content Find & Replace by URLs ===
-Contributors: ankur2194
+Contributors: ankur2194, alkesh7
 Tags: find and replace, search replace, bulk edit, urls, content
 Requires at least: 5.6
 Tested up to: 7.0
 Requires PHP: 7.2
-Stable tag: 1.0.4
+Stable tag: 1.0.5
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 Text Domain: replacely
 
-Bulk find and replace exact text in post, page, and Elementor content by URL, with dry-run preview, results dashboard, and CSV export.
+Safely bulk find and replace exact text inside targeted posts, pages, and Elementor content by listing URLs or paths, with a dry-run preview, detailed results, CSV export, and an activity log.
 
 == Description ==
 
@@ -107,6 +107,10 @@ The plugin cleans up after itself. Deleting it from the **Plugins** screen remov
 
 == Changelog ==
 
+= 1.0.5 =
+* Updated the plugin for WordPress 7.0 compatibility, refreshed the plugin metadata, and tightened the PHP comments and coding-standard compliance.
+* Improved the plugin description and readme copy to better explain its targeted, safe bulk-replacement workflow.
+
 = 1.0.4 =
 * Renamed the plugin to "Replacely – Bulk Content Find & Replace by URLs" and standardized internal prefixes, namespace, and admin asset identifiers. No user-facing functional change.
 * Hardened the CSV export against spreadsheet formula injection.
@@ -124,6 +128,9 @@ The plugin cleans up after itself. Deleting it from the **Plugins** screen remov
 * Initial release.
 
 == Upgrade Notice ==
+
+= 1.0.5 =
+WordPress 7.0 compatibility update with documentation polish and minor security/compliance hardening.
 
 = 1.0.4 =
 Plugin renamed to Replacely. No functional changes.

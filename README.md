@@ -5,7 +5,7 @@
 [![WordPress](https://img.shields.io/badge/WordPress-5.6%2B-blue.svg)](https://wordpress.org/)
 [![PHP](https://img.shields.io/badge/PHP-7.2%2B-purple.svg)](https://www.php.net/)
 [![License: GPL v2+](https://img.shields.io/badge/License-GPL%20v2%2B-green.svg)](https://www.gnu.org/licenses/gpl-2.0.html)
-[![Version](https://img.shields.io/badge/version-1.0.4-orange.svg)](#changelog)
+[![Version](https://img.shields.io/badge/version-1.0.5-orange.svg)](#changelog)
 
 ---
 
@@ -156,6 +156,10 @@ No. It is stored in a single non-autoloaded option that is hard-capped at 200 en
 The plugin cleans up after itself. Deleting it from the **Plugins** screen removes everything it stored in the database — the activity-log option and every per-user results/state transient (on multisite, the cleanup runs for each site in the network). The actual content changes made to your posts are intentionally left in place, since those are real edits to your site, not plugin data.
 
 ## Changelog
+
+### 1.0.5
+- Updated the plugin for **WordPress 7.0 compatibility**, refreshed the plugin metadata, and tightened the PHP comments and coding-standard compliance.
+- Improved the short description and readme copy to better explain the targeted, safe bulk-replacement workflow.
 
 ### 1.0.4
 - Renamed the plugin to **Replacely – Bulk Content Find & Replace by URLs** and standardized internal prefixes, namespace, and admin asset identifiers (no user-facing functional change).

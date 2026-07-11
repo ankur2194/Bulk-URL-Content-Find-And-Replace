@@ -206,14 +206,14 @@ class Helper {
 	 */
 	public static function status_label( $status ) {
 		$labels = array(
-			'updated'        => __( 'Updated', 'replacely' ),
-			'preview'        => __( 'Preview', 'replacely' ),
-			'no_match'       => __( 'No match', 'replacely' ),
-			'invalid_url'    => __( 'Invalid URL', 'replacely' ),
-			'skipped'        => __( 'Skipped', 'replacely' ),
-			'failed'         => __( 'Failed', 'replacely' ),
-			'duplicate'      => __( 'Duplicate', 'replacely' ),
-			'not_supported'  => __( 'Unsupported', 'replacely' ),
+			'updated'       => __( 'Updated', 'replacely' ),
+			'preview'       => __( 'Preview', 'replacely' ),
+			'no_match'      => __( 'No match', 'replacely' ),
+			'invalid_url'   => __( 'Invalid URL', 'replacely' ),
+			'skipped'       => __( 'Skipped', 'replacely' ),
+			'failed'        => __( 'Failed', 'replacely' ),
+			'duplicate'     => __( 'Duplicate', 'replacely' ),
+			'not_supported' => __( 'Unsupported', 'replacely' ),
 		);
 
 		return isset( $labels[ $status ] ) ? $labels[ $status ] : ucfirst( str_replace( '_', ' ', $status ) );

@@ -143,9 +143,9 @@ class Admin_Page {
 		// including HTML markup, whitespace, and multi-line text. Sanitizing would corrupt the
 		// match. Access is gated by Helper::CAPABILITY + nonce above, and every value is escaped
 		// on output (esc_textarea / esc_attr).
-		$search_raw  = isset( $_POST['replacely_search'] )  ? (string) wp_unslash( $_POST['replacely_search'] )  : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
+		$search_raw  = isset( $_POST['replacely_search'] ) ? (string) wp_unslash( $_POST['replacely_search'] ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
 		$replace_raw = isset( $_POST['replacely_replace'] ) ? (string) wp_unslash( $_POST['replacely_replace'] ) : ''; // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized
-		$urls_raw    = isset( $_POST['replacely_urls'] )    ? sanitize_textarea_field( wp_unslash( $_POST['replacely_urls'] ) ) : '';
+		$urls_raw    = isset( $_POST['replacely_urls'] ) ? sanitize_textarea_field( wp_unslash( $_POST['replacely_urls'] ) ) : '';
 		$dry_run     = isset( $_POST['replacely_dry_run'] ) && '1' === sanitize_text_field( wp_unslash( $_POST['replacely_dry_run'] ) );
 
 		$errors = $this->validate( $search_raw, $urls_raw );
@@ -181,7 +181,7 @@ class Admin_Page {
 		wp_safe_redirect(
 			add_query_arg(
 				array(
-					'page'           => Helper::PAGE_SLUG,
+					'page'               => Helper::PAGE_SLUG,
 					'replacely_run_done' => '1',
 				),
 				admin_url( 'tools.php' )
@@ -273,17 +273,17 @@ class Admin_Page {
 			}
 
 			$entries[] = array(
-				'timestamp'    => $timestamp,
-				'user_id'      => (int) $user_id,
-				'user_name'    => $user_name,
-				'post_id'      => isset( $row['post_id'] ) ? (int) $row['post_id'] : 0,
-				'post_type'    => isset( $row['post_type'] ) ? (string) $row['post_type'] : '',
-				'post_title'   => isset( $row['post_title'] ) ? (string) $row['post_title'] : '',
-				'input'        => isset( $row['input'] ) ? (string) $row['input'] : '',
-				'resolved_url' => isset( $row['resolved_url'] ) ? (string) $row['resolved_url'] : '',
-				'edit_link'    => isset( $row['edit_link'] ) ? (string) $row['edit_link'] : '',
-				'view_link'    => isset( $row['view_link'] ) ? (string) $row['view_link'] : '',
-				'replacements' => isset( $row['replacements'] ) ? (int) $row['replacements'] : 0,
+				'timestamp'              => $timestamp,
+				'user_id'                => (int) $user_id,
+				'user_name'              => $user_name,
+				'post_id'                => isset( $row['post_id'] ) ? (int) $row['post_id'] : 0,
+				'post_type'              => isset( $row['post_type'] ) ? (string) $row['post_type'] : '',
+				'post_title'             => isset( $row['post_title'] ) ? (string) $row['post_title'] : '',
+				'input'                  => isset( $row['input'] ) ? (string) $row['input'] : '',
+				'resolved_url'           => isset( $row['resolved_url'] ) ? (string) $row['resolved_url'] : '',
+				'edit_link'              => isset( $row['edit_link'] ) ? (string) $row['edit_link'] : '',
+				'view_link'              => isset( $row['view_link'] ) ? (string) $row['view_link'] : '',
+				'replacements'           => isset( $row['replacements'] ) ? (int) $row['replacements'] : 0,
 				'content_replacements'   => isset( $row['content_replacements'] ) ? (int) $row['content_replacements'] : 0,
 				'elementor_replacements' => isset( $row['elementor_replacements'] ) ? (int) $row['elementor_replacements'] : 0,
 			);
@@ -313,7 +313,7 @@ class Admin_Page {
 		wp_safe_redirect(
 			add_query_arg(
 				array(
-					'page'             => Helper::PAGE_SLUG,
+					'page'                  => Helper::PAGE_SLUG,
 					'replacely_log_cleared' => '1',
 				),
 				admin_url( 'tools.php' )
@@ -367,7 +367,7 @@ class Admin_Page {
 			wp_safe_redirect(
 				add_query_arg(
 					array(
-						'page'                 => Helper::PAGE_SLUG,
+						'page'                    => Helper::PAGE_SLUG,
 						'replacely_export_failed' => '1',
 					),
 					admin_url( 'tools.php' )
@@ -413,16 +413,16 @@ class Admin_Page {
 				array_map(
 					array( $this, 'csv_escape_formula' ),
 					array(
-						isset( $row['input'] )        ? $row['input']        : '',
+						isset( $row['input'] ) ? $row['input'] : '',
 						isset( $row['resolved_url'] ) ? $row['resolved_url'] : '',
-						isset( $row['post_id'] )      ? $row['post_id']      : '',
-						isset( $row['post_type'] )    ? $row['post_type']    : '',
-						isset( $row['post_title'] )   ? $row['post_title']   : '',
-						isset( $row['status'] )       ? Helper::status_label( $row['status'] ) : '',
+						isset( $row['post_id'] ) ? $row['post_id'] : '',
+						isset( $row['post_type'] ) ? $row['post_type'] : '',
+						isset( $row['post_title'] ) ? $row['post_title'] : '',
+						isset( $row['status'] ) ? Helper::status_label( $row['status'] ) : '',
 						isset( $row['replacements'] ) ? $row['replacements'] : 0,
-						isset( $row['content_replacements'] )   ? $row['content_replacements']   : 0,
+						isset( $row['content_replacements'] ) ? $row['content_replacements'] : 0,
 						isset( $row['elementor_replacements'] ) ? $row['elementor_replacements'] : 0,
-						isset( $row['message'] )      ? $row['message']      : '',
+						isset( $row['message'] ) ? $row['message'] : '',
 					)
 				)
 			);
@@ -618,11 +618,13 @@ class Admin_Page {
 						rows="10"
 						required
 						aria-required="true"
-						placeholder="<?php
+						placeholder="
+						<?php
 							echo esc_attr(
 								"https://example.com/sample-page/\n/another-page/\n/blog/my-post/"
 							);
-						?>"
+						?>
+						"
 						data-replacely-lines="replacely_urls_counter"
 					><?php echo esc_textarea( $state['urls'] ); ?></textarea>
 					<div class="replacely-field__meta">
@@ -735,9 +737,9 @@ class Admin_Page {
 	 */
 	private function render_results( array $results ) {
 		$summary = isset( $results['summary'] ) ? $results['summary'] : array();
-		$rows    = isset( $results['rows'] )    ? $results['rows']    : array();
+		$rows    = isset( $results['rows'] ) ? $results['rows'] : array();
 
-		$is_dry  = ! empty( $summary['dry_run'] );
+		$is_dry = ! empty( $summary['dry_run'] );
 
 		$export_url = wp_nonce_url(
 			add_query_arg(
@@ -998,14 +1000,14 @@ class Admin_Page {
 			<ul class="replacely-updated-list">
 				<?php foreach ( $matched as $row ) : ?>
 					<?php
-					$title     = ! empty( $row['post_title'] ) ? $row['post_title'] : __( '(no title)', 'replacely' );
-					$post_id   = isset( $row['post_id'] ) ? (int) $row['post_id'] : 0;
-					$post_type = isset( $row['post_type'] ) ? $row['post_type'] : '';
-					$reps      = isset( $row['replacements'] ) ? (int) $row['replacements'] : 0;
+					$title          = ! empty( $row['post_title'] ) ? $row['post_title'] : __( '(no title)', 'replacely' );
+					$post_id        = isset( $row['post_id'] ) ? (int) $row['post_id'] : 0;
+					$post_type      = isset( $row['post_type'] ) ? $row['post_type'] : '';
+					$reps           = isset( $row['replacements'] ) ? (int) $row['replacements'] : 0;
 					$content_reps   = isset( $row['content_replacements'] ) ? (int) $row['content_replacements'] : 0;
 					$elementor_reps = isset( $row['elementor_replacements'] ) ? (int) $row['elementor_replacements'] : 0;
-					$edit_url  = ! empty( $row['edit_link'] ) ? $row['edit_link'] : '';
-					$view_url  = ! empty( $row['view_link'] ) ? $row['view_link'] : '';
+					$edit_url       = ! empty( $row['edit_link'] ) ? $row['edit_link'] : '';
+					$view_url       = ! empty( $row['view_link'] ) ? $row['view_link'] : '';
 					?>
 					<li class="replacely-updated-item">
 						<div class="replacely-updated-item__main">
@@ -1124,16 +1126,16 @@ class Admin_Page {
 						<tbody>
 							<?php foreach ( $entries as $entry ) : ?>
 								<?php
-								$title     = ! empty( $entry['post_title'] ) ? $entry['post_title'] : __( '(no title)', 'replacely' );
-								$when      = ! empty( $entry['timestamp'] ) ? mysql2date( $date_format, $entry['timestamp'] ) : '';
-								$post_id   = isset( $entry['post_id'] ) ? (int) $entry['post_id'] : 0;
-								$post_type = isset( $entry['post_type'] ) ? $entry['post_type'] : '';
-								$reps      = isset( $entry['replacements'] ) ? (int) $entry['replacements'] : 0;
+								$title          = ! empty( $entry['post_title'] ) ? $entry['post_title'] : __( '(no title)', 'replacely' );
+								$when           = ! empty( $entry['timestamp'] ) ? mysql2date( $date_format, $entry['timestamp'] ) : '';
+								$post_id        = isset( $entry['post_id'] ) ? (int) $entry['post_id'] : 0;
+								$post_type      = isset( $entry['post_type'] ) ? $entry['post_type'] : '';
+								$reps           = isset( $entry['replacements'] ) ? (int) $entry['replacements'] : 0;
 								$content_reps   = isset( $entry['content_replacements'] ) ? (int) $entry['content_replacements'] : 0;
 								$elementor_reps = isset( $entry['elementor_replacements'] ) ? (int) $entry['elementor_replacements'] : 0;
-								$edit_url  = ! empty( $entry['edit_link'] ) ? $entry['edit_link'] : '';
-								$view_url  = ! empty( $entry['view_link'] ) ? $entry['view_link'] : '';
-								$user_name = ! empty( $entry['user_name'] ) ? $entry['user_name'] : __( '—', 'replacely' );
+								$edit_url       = ! empty( $entry['edit_link'] ) ? $entry['edit_link'] : '';
+								$view_url       = ! empty( $entry['view_link'] ) ? $entry['view_link'] : '';
+								$user_name      = ! empty( $entry['user_name'] ) ? $entry['user_name'] : __( '—', 'replacely' );
 								?>
 								<tr>
 									<td>
@@ -1245,7 +1247,7 @@ class Admin_Page {
 							<td class="replacely-num"><?php echo esc_html( number_format_i18n( $index + 1 ) ); ?></td>
 							<td class="replacely-cell-url">
 								<code class="replacely-code"><?php echo esc_html( isset( $row['input'] ) ? $row['input'] : '' ); ?></code>
-								<?php if ( ! empty( $row['resolved_url'] ) && $row['resolved_url'] !== ( isset( $row['input'] ) ? $row['input'] : '' ) ) : ?>
+								<?php if ( ! empty( $row['resolved_url'] ) && ( isset( $row['input'] ) ? $row['input'] : '' ) !== $row['resolved_url'] ) : ?>
 									<div class="replacely-cell-url__resolved">
 										<span class="dashicons dashicons-arrow-right-alt" aria-hidden="true"></span>
 										<code><?php echo esc_html( $row['resolved_url'] ); ?></code>

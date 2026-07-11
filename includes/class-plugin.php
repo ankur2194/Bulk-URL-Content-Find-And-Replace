@@ -42,6 +42,9 @@ final class Plugin {
 
 	/**
 	 * Disallow unserialization.
+	 *
+	 * @throws \RuntimeException When unserialization is attempted.
+	 * @return void
 	 */
 	public function __wakeup() {
 		throw new \RuntimeException( 'Unserialization is not allowed.' );

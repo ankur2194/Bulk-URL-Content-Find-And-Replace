@@ -65,24 +65,24 @@ class Replacer {
 	 * @return array{rows: array, summary: array}
 	 */
 	public function process( array $lines ) {
-		$rows = array();
-		$seen_post_ids   = array();
-		$summary = array(
-			'total'              => count( $lines ),
-			'updated'            => 0,
-			'previewed'          => 0,
-			'no_match'           => 0,
-			'invalid'            => 0,
-			'failed'             => 0,
-			'duplicate'          => 0,
-			'skipped'            => 0,
+		$rows          = array();
+		$seen_post_ids = array();
+		$summary       = array(
+			'total'                  => count( $lines ),
+			'updated'                => 0,
+			'previewed'              => 0,
+			'no_match'               => 0,
+			'invalid'                => 0,
+			'failed'                 => 0,
+			'duplicate'              => 0,
+			'skipped'                => 0,
 			'total_replacements'     => 0,
 			'content_replacements'   => 0,
 			'elementor_replacements' => 0,
-			'started_at'         => microtime( true ),
-			'duration'           => 0.0,
-			'timestamp'          => current_time( 'mysql' ),
-			'dry_run'            => $this->dry_run,
+			'started_at'             => microtime( true ),
+			'duration'               => 0.0,
+			'timestamp'              => current_time( 'mysql' ),
+			'dry_run'                => $this->dry_run,
 		);
 
 		if ( '' === $this->search ) {
@@ -122,25 +122,25 @@ class Replacer {
 	 */
 	private function process_single_line( $line, array &$seen_post_ids, array &$summary ) {
 		$row = array(
-			'input'         => $line,
-			'resolved_url'  => '',
-			'post_id'       => 0,
-			'post_type'     => '',
-			'post_title'    => '',
-			'status'        => 'failed',
-			'replacements'  => 0,
+			'input'                  => $line,
+			'resolved_url'           => '',
+			'post_id'                => 0,
+			'post_type'              => '',
+			'post_title'             => '',
+			'status'                 => 'failed',
+			'replacements'           => 0,
 			'content_replacements'   => 0,
 			'elementor_replacements' => 0,
-			'message'       => '',
-			'edit_link'     => '',
-			'view_link'     => '',
+			'message'                => '',
+			'edit_link'              => '',
+			'view_link'              => '',
 		);
 
 		$normalized = Helper::normalize_to_url( $line );
 		if ( null === $normalized ) {
 			$row['status']  = 'invalid_url';
 			$row['message'] = __( 'Could not parse this line as a URL or path.', 'replacely' );
-			$summary['invalid']++;
+			++$summary['invalid'];
 			return $row;
 		}
 
@@ -150,20 +150,20 @@ class Replacer {
 		if ( ! $post_id ) {
 			$row['status']  = 'invalid_url';
 			$row['message'] = __( 'No matching post, page, or CPT was found for this URL.', 'replacely' );
-			$summary['invalid']++;
+			++$summary['invalid'];
 			return $row;
 		}
 
 		if ( in_array( (int) $post_id, $seen_post_ids, true ) ) {
-			$row['post_id']     = (int) $post_id;
-			$row['status']      = 'duplicate';
-			$row['message']     = __( 'This post was already processed earlier in the list.', 'replacely' );
-			$post              = get_post( $post_id );
+			$row['post_id'] = (int) $post_id;
+			$row['status']  = 'duplicate';
+			$row['message'] = __( 'This post was already processed earlier in the list.', 'replacely' );
+			$post           = get_post( $post_id );
 			if ( $post ) {
 				$row['post_type']  = $post->post_type;
 				$row['post_title'] = $post->post_title;
 			}
-			$summary['duplicate']++;
+			++$summary['duplicate'];
 			return $row;
 		}
 
@@ -171,7 +171,7 @@ class Replacer {
 		if ( ! ( $post instanceof \WP_Post ) ) {
 			$row['status']  = 'failed';
 			$row['message'] = __( 'Post could not be loaded.', 'replacely' );
-			$summary['failed']++;
+			++$summary['failed'];
 			return $row;
 		}
 
@@ -186,7 +186,7 @@ class Replacer {
 				__( 'Post status "%s" is not eligible for editing.', 'replacely' ),
 				$post->post_status
 			);
-			$summary['skipped']++;
+			++$summary['skipped'];
 			return $row;
 		}
 
@@ -196,7 +196,7 @@ class Replacer {
 			$row['post_title'] = $post->post_title;
 			$row['status']     = 'skipped';
 			$row['message']    = __( 'Revisions are not edited directly.', 'replacely' );
-			$summary['skipped']++;
+			++$summary['skipped'];
 			return $row;
 		}
 
@@ -207,7 +207,7 @@ class Replacer {
 			$row['post_title'] = $post->post_title;
 			$row['status']     = 'not_supported';
 			$row['message']    = __( 'You do not have permission to edit this post.', 'replacely' );
-			$summary['failed']++;
+			++$summary['failed'];
 			return $row;
 		}
 
@@ -245,9 +245,9 @@ class Replacer {
 		// not be safely re-encoded, refuse to touch this post rather than risk
 		// writing a corrupt (empty) value to _elementor_data.
 		if ( $elementor_count > 0 && ! is_string( $new_elementor ) ) {
-			$row['status']   = 'failed';
-			$row['message']  = __( 'Elementor data could not be safely re-encoded; this post was left unchanged.', 'replacely' );
-			$summary['failed']++;
+			$row['status']  = 'failed';
+			$row['message'] = __( 'Elementor data could not be safely re-encoded; this post was left unchanged.', 'replacely' );
+			++$summary['failed'];
 			$seen_post_ids[] = (int) $post->ID;
 			return $row;
 		}
@@ -257,14 +257,14 @@ class Replacer {
 		if ( 0 === $count ) {
 			$row['status']  = 'no_match';
 			$row['message'] = __( 'The search text was not found in this post.', 'replacely' );
-			$summary['no_match']++;
+			++$summary['no_match'];
 			$seen_post_ids[] = (int) $post->ID;
 			return $row;
 		}
 
-		$row['replacements']           = $count;
-		$row['content_replacements']   = $content_count;
-		$row['elementor_replacements'] = $elementor_count;
+		$row['replacements']                = $count;
+		$row['content_replacements']        = $content_count;
+		$row['elementor_replacements']      = $elementor_count;
 		$summary['total_replacements']     += $count;
 		$summary['content_replacements']   += $content_count;
 		$summary['elementor_replacements'] += $elementor_count;
@@ -281,7 +281,7 @@ class Replacer {
 				),
 				$count
 			);
-			$summary['previewed']++;
+			++$summary['previewed'];
 			$seen_post_ids[] = (int) $post->ID;
 			return $row;
 		}
@@ -306,7 +306,7 @@ class Replacer {
 				if ( is_wp_error( $update ) ) {
 					$row['status']  = 'failed';
 					$row['message'] = $update->get_error_message();
-					$summary['failed']++;
+					++$summary['failed'];
 					$seen_post_ids[] = (int) $post->ID;
 					return $row;
 				}
@@ -324,14 +324,14 @@ class Replacer {
 			// once at the end of the batch (see process()).
 			delete_post_meta( $post->ID, '_elementor_css' );
 			$this->elementor_dirty = true;
-			$something_changed      = true;
+			$something_changed     = true;
 		}
 
 		// Defence in depth: if for some reason nothing actually changed, report it.
 		if ( ! $something_changed ) {
 			$row['status']  = 'no_match';
 			$row['message'] = __( 'Content did not change after replacement.', 'replacely' );
-			$summary['no_match']++;
+			++$summary['no_match'];
 			$seen_post_ids[] = (int) $post->ID;
 			return $row;
 		}
@@ -347,7 +347,7 @@ class Replacer {
 			),
 			$count
 		);
-		$summary['updated']++;
+		++$summary['updated'];
 		$seen_post_ids[] = (int) $post->ID;
 
 		return $row;
@@ -373,8 +373,8 @@ class Replacer {
 		}
 
 		if ( is_string( $node ) ) {
-			$local = 0;
-			$node  = str_replace( $this->search, $this->replace, $node, $local );
+			$local  = 0;
+			$node   = str_replace( $this->search, $this->replace, $node, $local );
 			$count += $local;
 		}
 
